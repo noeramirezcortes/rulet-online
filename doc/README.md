@@ -55,6 +55,8 @@ cada idioma con su propia clave.
   o que cada idioma guarda sus datos por separado).
 - Se detectó y documentó la duplicación de lógica entre `app.js` y `en/app.js`, que es el principal
   riesgo de mantenimiento.
+- Se comprobó la sintaxis de ambos JS (`node --check`) y se sirvieron las páginas en local para
+  confirmar que `/`, `/en/`, `styles.css` y `en/app.js` responden correctamente.
 - No se modificó ningún archivo de la aplicación; solo se creó esta carpeta `doc/`.
 
 ## Aviso sobre carpetas ajenas a la app

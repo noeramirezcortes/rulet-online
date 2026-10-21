@@ -43,8 +43,8 @@ Idéntico en ambos idiomas:
 El historial se guarda de más reciente a más antiguo (`unshift`). La interfaz solo pinta los 10
 primeros, así que las posiciones 11 y 12 existen en disco pero no se ven.
 
-Tamaño máximo teórico por idioma: ~20×40 + 12×(40 + 9) + sobrecarga ≈ **1,5 KB**. No hay riesgo de
-cuota.
+Tamaño máximo teórico por idioma con datos generados por la interfaz: ~20×40 + 12×(40 + 9) +
+sobrecarga ≈ **1,5 KB**. No hay riesgo de cuota.
 
 ## 3. Claves por idioma
 

@@ -8,11 +8,11 @@
 
 ## 2. Ejecutar en local
 
-### Opción A — abrir el archivo
+### Opción A — abrir los archivos
 
-Doble clic en `index.html` (o arrastrarlo al navegador). Funciona porque no hay módulos ES, `fetch`
-ni rutas absolutas. Limitación: `localStorage` en `file://` puede comportarse de forma distinta según
-el navegador (origen opaco, datos por archivo o bloqueados).
+Doble clic en `index.html` (español) o en `en/index.html` (inglés). Funciona porque no hay módulos ES,
+`fetch` ni rutas absolutas. Limitación: `localStorage` en `file://` puede comportarse de forma distinta
+según el navegador (origen opaco, datos por archivo o bloqueados).
 
 ### Opción B — servidor estático
 
@@ -24,51 +24,64 @@ python -m http.server 8000
 npx serve .
 ```
 
-Abre `http://localhost:8000`. También vale la extensión *Live Server* de VS Code.
+Abre `http://localhost:8000` (ES) y `http://localhost:8000/en/` (EN). También vale la extensión
+*Live Server* de VS Code.
 
 ### Opción C — cualquier servidor
 
-Sirve la carpeta tal cual. No hay reescrituras de rutas ni configuración especial.
+Sirve la carpeta tal cual. No hay reescrituras de rutas ni configuración especial. Es importante
+mantener la estructura: `en/index.html` carga `../styles.css` y `en/app.js`.
 
 ## 3. Desplegar
 
 | Plataforma | Pasos | Notas |
 | --- | --- | --- |
-| **Netlify Drop** | Arrastrar la carpeta a <https://app.netlify.com/drop> | Publica la raíz; no hay build |
-| **GitHub Pages** | Subir los archivos → *Settings → Pages* → rama/carpeta raíz | Añadir `.nojekyll` si se sirven carpetas con `_` |
+| **Netlify Drop** | Arrastrar la carpeta a <https://app.netlify.com/drop> | Publica la raíz, incluida `en/`; no hay build |
+| **GitHub Pages** | Subir los archivos → *Settings → Pages* → rama/carpeta raíz | Mantener `en/` y `styles.css` en la raíz |
 | **Vercel** | Importar el repositorio, framework «Other», sin build | Directorio de salida: raíz |
 | **Cloudflare Pages** | Conectar repo, build vacío, salida `/` | — |
-| **Hosting compartido / FTP** | Subir `index.html`, `styles.css`, `app.js` a la carpeta pública | `preview.png` y `doc/` son opcionales |
+| **Hosting compartido / FTP** | Subir `index.html`, `app.js`, `styles.css` y la carpeta `en/` | `preview.png` y `doc/` son opcionales |
+
+Comprobaciones tras publicar:
+
+- `https://tu-dominio.com/` carga la versión española.
+- `https://tu-dominio.com/en/` carga la inglesa con estilos (si no, falta `styles.css` en la raíz).
+- El enlace `EN`/`ES` de la cabecera lleva a la otra versión.
+- No hay errores 404 en la consola.
 
 Recomendaciones:
 
-- Publica solo lo necesario; evita subir `.agents/`, `.devin/`, `.vibe/` y `skills-lock.json`.
-- `index.html` con `Cache-Control: no-cache` o vida corta; CSS/JS pueden cachearse más, pero al no
-  llevar *hash* en el nombre conviene una vida corta o añadir `?v=...` al referenciarlos.
+- Publica solo lo necesario; evita subir `.agents/`, `.devin/`, `.vibe/`, `skills-lock.json` y `doc/`.
+- `index.html` y `en/index.html` con `Cache-Control: no-cache` o vida corta; CSS/JS pueden cachearse
+  más, pero al no llevar *hash* en el nombre conviene una vida corta o añadir `?v=...`.
 - No se necesitan cabeceras CORS, CSP especial ni redirecciones. Si añades CSP, permite `'self'` para
   scripts/estilos y `data:` para el favicon; el audio y el canvas no requieren permisos.
 - HTTPS no es obligatorio para que funcione, pero es lo esperable en cualquier hosting moderno.
 
 ## 4. Personalización
 
+> Los cambios de lógica deben replicarse en **`app.js` y `en/app.js`**. Los textos, en
+> **`index.html` y `en/index.html`**. `styles.css` es compartido.
+
 | Cambio | Archivo · línea | Instrucciones |
 | --- | --- | --- |
-| Opciones iniciales | `app.js:14` | Edita el array `DEFAULT_OPTIONS`. Afecta también a «Restablecer» |
-| Colores de la ruleta | `app.js:19` | Edita `PALETTE` (12 hex). Se usa para porciones, puntos, chips y confeti |
-| Máximo de opciones | `app.js:10` | `MAX_OPTIONS`. El contador se actualiza solo |
-| Longitud máxima de una opción | `index.html:80`, `app.js:107`, `app.js:602` | Cambia el `maxlength` y los dos `slice(0, 40)` |
-| Clave de almacenamiento | `app.js:9` | Cambiarla invalida los datos anteriores |
-| Velocidad / vueltas | `app.js:478–481` | `turns`, `duration`, y los valores de `REDUCED` |
-| Confeti | `app.js:350` | `70` móvil / `120` escritorio |
-| Sonido | `app.js:149–182` | Frecuencias, tipos de onda, ganancias |
-| Tema visual | `styles.css:2–16` | Tokens de color, radio y fuente |
-| Fondo y halos | `styles.css:28–32`, `234–244` | Degradados radiales y halo de la ruleta |
-| Puntos de ruptura | `styles.css:755`, `761` | 960 px y 560 px |
-| Textos, título y SEO | `index.html` | `<title>`, `meta description`, OG, hero, footer |
-| Favicon | `index.html:13` | SVG en data URI |
-| Imagen para redes | `index.html` | No hay `og:image`; puedes añadir `preview.png` con URL absoluta |
+| Opciones iniciales | `app.js:14`, `en/app.js:14` | Edita `DEFAULT_OPTIONS` en cada idioma. Afecta también a «Restablecer» |
+| Colores de la ruleta | `app.js:19`, `en/app.js:19` | Edita `PALETTE` (12 hex) en ambos. Se usa para porciones, puntos, chips y confeti |
+| Máximo de opciones | `app.js:10`, `en/app.js:10` | `MAX_OPTIONS`. El contador se actualiza solo |
+| Longitud máxima de una opción | `index.html:86`, `en/index.html:86`, `app.js:107`/`:602`, `en/app.js:107`/`:602` | Cambia el `maxlength` y los dos `slice(0, 40)` de cada JS |
+| Claves de almacenamiento | `app.js:9`, `en/app.js:9` | Cambiarlas invalida los datos de ese idioma |
+| Velocidad / vueltas | `app.js:478–481`, `en/app.js:478–481` | `turns`, `duration`, y los valores de `REDUCED` |
+| Confeti | `app.js:350`, `en/app.js:350` | `70` móvil / `120` escritorio |
+| Sonido | `app.js:149–182`, `en/app.js:149–182` | Frecuencias, tipos de onda, ganancias |
+| Tema visual | `styles.css:2–16` | Tokens de color, radio y fuente (afecta a ambos idiomas) |
+| Fondo y halos | `styles.css:28–32`, `263–273` | Degradados radiales y halo de la ruleta |
+| Enlace de idioma | `index.html:35`, `en/index.html:35`, `styles.css:226–253` | Texto `EN`/`ES`, `href`, `hreflang` y estilos |
+| Puntos de ruptura | `styles.css:784`, `790` | 960 px y 560 px |
+| Textos, título y SEO | `index.html`, `en/index.html` | `<title>`, `meta description`, OG, hero, footer |
+| Favicon | `index.html:16`, `en/index.html:16` | SVG en data URI |
+| Imagen para redes | Ambos HTML | No hay `og:image`; puedes añadir `preview.png` con URL absoluta |
 
-> **Coherencia de color:** la paleta de la ruleta está en JS y el resto del tema en CSS. Si cambias
+> **Coherencia de color:** la paleta de la ruleta está en ambos JS y el resto del tema en CSS. Si cambias
 > una, revisa la otra.
 
 ## 5. Depuración
@@ -76,10 +89,11 @@ Recomendaciones:
 ### Inspeccionar el estado
 
 ```js
-// Datos persistidos
-JSON.parse(localStorage.getItem("ruleta-de-la-suerte:v1"));
+// Datos persistidos del idioma actual
+JSON.parse(localStorage.getItem("ruleta-de-la-suerte:v1")); // ES
+JSON.parse(localStorage.getItem("spin-the-wheel:v1"));      // EN
 
-// Empezar limpio
+// Empezar limpio en el idioma actual (ejemplo ES)
 localStorage.removeItem("ruleta-de-la-suerte:v1");
 location.reload();
 ```
@@ -87,24 +101,24 @@ location.reload();
 ### Forzar estados
 
 ```js
-// Ruleta vacía
+// Ruleta vacía en español
 localStorage.setItem("ruleta-de-la-suerte:v1", '{"options":[],"history":[],"muted":false}');
 location.reload();
 
-// Historial largo
-const s = JSON.parse(localStorage.getItem("ruleta-de-la-suerte:v1"));
-s.history = Array.from({length: 12}, (_, i) => ({ label: "Opción " + i, color: "#FF6B6B" }));
-localStorage.setItem("ruleta-de-la-suerte:v1", JSON.stringify(s));
+// Historial largo en inglés
+const s = JSON.parse(localStorage.getItem("spin-the-wheel:v1"));
+s.history = Array.from({length: 12}, (_, i) => ({ label: "Option " + i, color: "#FF6B6B" }));
+localStorage.setItem("spin-the-wheel:v1", JSON.stringify(s));
 location.reload();
 ```
 
 ### Herramientas del navegador
 
-- **DevTools → Application → Local Storage**: ver/editar/borrar la clave.
+- **DevTools → Application → Local Storage**: ver/editar/borrar las dos claves.
 - **DevTools → Rendering → Emulate CSS media feature `prefers-reduced-motion`**: probar el modo reducido
   (requiere recargar porque `REDUCED` se lee al inicio).
 - **DevTools → Performance**: revisar frames durante el giro y el confeti.
-- **Lighthouse / axe**: accesibilidad, contraste y buenas prácticas.
+- **Lighthouse / axe**: accesibilidad, contraste y buenas prácticas, en `/` y `/en/`.
 - **Consola**: los errores de `localStorage` se silencian a propósito; para depurarlos, pon un
   `console.log` temporal en los `catch` de `loadState`/`saveState`.
 
@@ -115,10 +129,13 @@ location.reload();
 | La ruleta no se dibuja | `wheelSize` es 0 (canvas oculto o sin tamaño) o falta `#wheelCanvas` |
 | `Cannot read properties of null` | Un ID del HTML no coincide con el objeto `els` |
 | El botón de girar está siempre deshabilitado | Menos de 2 opciones o `spinning` atascado en `true` |
-| No se guarda nada | `localStorage` bloqueado, modo privado o clave distinta por origen |
+| No se guarda nada | `localStorage` bloqueado, modo privado o clave distinta por origen/idioma |
 | El resultado no coincide con la porción | Se tocó la geometría (`target`, `getIndexAtPointer`, sentido de giro) |
 | No hay sonido | Navegador sin Web Audio, contexto suspendido o `muted = true` |
 | El confeti no aparece | `prefers-reduced-motion` activo o canvas `#fx` sin tamaño |
+| La versión EN no tiene estilos | Falta `styles.css` en la raíz o se movió `en/index.html` |
+| El enlace de idioma da 404 | No se desplegó la carpeta `en/` (o el `href` cambió) |
+| Cambiar de idioma «pierde» las opciones | Es el comportamiento actual: cada idioma usa su clave |
 
 ## 6. Plan de pruebas manual
 
@@ -126,36 +143,43 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 
 | # | Caso | Resultado esperado |
 | ---: | --- | --- |
-| 1 | Primera visita sin datos | 8 opciones de ejemplo, contador `8/20`, resultado `—`, historial vacío |
-| 2 | Añadir con `Enter` | La opción aparece al final, el input se vacía y mantiene el foco |
-| 3 | Añadir con el botón `+` | Igual que el anterior |
-| 4 | Añadir texto vacío o solo espacios | Se ignora, sin errores ni toast |
-| 5 | Añadir 21 opciones | A la 21.ª aparece «Puedes añadir hasta 20 opciones»; el contador no pasa de 20 |
-| 6 | Opción de más de 40 caracteres | Se recorta a 40 |
-| 7 | Opción duplicada | Se permite (comportamiento actual) y ocupa dos porciones |
-| 8 | Eliminar opción | Desaparece de la lista, la ruleta se redibuja y persiste al recargar |
-| 9 | Eliminar todas | Ruleta vacía con borde discontinuo, mensaje de ayuda, girar deshabilitado; persiste al recargar |
-| 10 | Quedar solo 1 opción | Botón de girar deshabilitado y subtítulo «1 opción» |
-| 11 | Mezclar | Cambia el orden, toast «Opciones mezcladas» y persiste |
-| 12 | Girar con botón / clic en ruleta / `Espacio` | Gira, muestra «Girando», ticks, y al final el ganador con fanfarria y confeti |
-| 13 | Girar dos veces seguidas | El segundo intento durante el giro se ignora |
-| 14 | Resultado e historial | El ganador aparece arriba del historial con su color; se muestran como máximo 10 |
-| 15 | Recargar tras varios giros | Opciones, historial y silencio se conservan; el resultado vuelve a `—` |
-| 16 | Silenciar / reactivar | Cambia el icono y `aria-pressed`, no suena durante el giro si está silenciado, y persiste |
-| 17 | Restablecer → cancelar | No cambia nada |
-| 18 | Restablecer → aceptar | Vuelven las 8 opciones, historial vacío, resultado `—`; el silencio se mantiene |
-| 19 | `localStorage` corrupto | Arranca con las opciones por defecto, sin errores visibles |
-| 20 | `localStorage` bloqueado | La app funciona en memoria; al recargar vuelve al estado inicial |
-| 21 | Ancho 360 / 768 / 1440 px | Sin desbordamiento horizontal; una columna en móvil y tableta |
-| 22 | Solo teclado | `Tab` recorre controles, foco visible, `Espacio` gira, `Enter` añade |
-| 23 | Movimiento reducido | Giro de ~0,65 s y 2 vueltas, sin confeti |
-| 24 | JavaScript desactivado | Se muestra el aviso `<noscript>` |
-| 25 | Sin red tras cargar | La app sigue funcionando (no hay peticiones) |
+| 1 | Primera visita a `/` sin datos | 8 opciones de ejemplo en español, contador `8/20`, resultado `—`, historial vacío |
+| 2 | Primera visita a `/en/` sin datos | 8 opciones en inglés, textos en inglés, contador `8/20` |
+| 3 | Enlace `EN` desde la portada | Navega a `en/index.html`; la página tiene `lang="en"` y estilos |
+| 4 | Enlace `ES` desde `/en/` | Vuelve a `index.html` con `lang="es"` |
+| 5 | Añadir opciones en ES y cambiar a EN | La lista inglesa es independiente (y viceversa) |
+| 6 | Añadir con `Enter` | La opción aparece al final, el input se vacía y mantiene el foco |
+| 7 | Añadir con el botón `+` | Igual que el anterior |
+| 8 | Añadir texto vacío o solo espacios | Se ignora, sin errores ni toast |
+| 9 | Añadir 21 opciones | A la 21.ª aparece el toast de límite; el contador no pasa de 20 |
+| 10 | Opción de más de 40 caracteres | Se recorta a 40 |
+| 11 | Opción duplicada | Se permite (comportamiento actual) y ocupa dos porciones |
+| 12 | Eliminar opción | Desaparece de la lista, la ruleta se redibuja y persiste al recargar |
+| 13 | Eliminar todas | Ruleta vacía con borde discontinuo, mensaje de ayuda, girar deshabilitado; persiste |
+| 14 | Quedar solo 1 opción | Botón de girar deshabilitado y subtítulo «1 opción» / «1 option» |
+| 15 | Mezclar | Cambia el orden, toast correspondiente y persiste |
+| 16 | Girar con botón / clic en ruleta / `Espacio` | Gira, muestra «Girando»/«Spinning», ticks, y al final el ganador con fanfarria y confeti |
+| 17 | Girar dos veces seguidas | El segundo intento durante el giro se ignora |
+| 18 | Resultado e historial | El ganador aparece arriba del historial con su color; máximo 10 visibles |
+| 19 | Recargar tras varios giros | Opciones, historial y silencio se conservan por idioma; el resultado vuelve a `—` |
+| 20 | Silenciar / reactivar | Cambia el icono y `aria-pressed`, no suena si está silenciado, y persiste por idioma |
+| 21 | Restablecer → cancelar | No cambia nada |
+| 22 | Restablecer → aceptar | Vuelven las 8 opciones de ese idioma, historial vacío, resultado `—`; el silencio se mantiene |
+| 23 | `localStorage` corrupto | Arranca con las opciones por defecto del idioma, sin errores visibles |
+| 24 | `localStorage` bloqueado | La app funciona en memoria; al recargar vuelve al estado inicial |
+| 25 | Ancho 360 / 768 / 1440 px | Sin desbordamiento horizontal; una columna en móvil y tableta, en ambos idiomas |
+| 26 | Solo teclado | `Tab` recorre idioma, sonido, controles y `×`; foco visible; `Espacio` gira; `Enter` añade |
+| 27 | Movimiento reducido | Giro de ~0,65 s y 2 vueltas, sin confeti |
+| 28 | JavaScript desactivado | Se muestra el aviso `<noscript>` en el idioma de la página |
+| 29 | Sin red tras cargar | La app sigue funcionando (no hay peticiones) |
+| 30 | Revisar el código fuente | `hreflang="es"`/`"en"` y `og:locale` correctos en cada página |
 
 ## 7. Rendimiento
 
-- **Peticiones**: 3 archivos (HTML, CSS, JS) + favicon inline; sin fuentes ni CDN.
-- **Peso**: ~43 KB de código sin comprimir (HTML 6 KB + CSS 17 KB + JS 20 KB); `preview.png` no se carga.
+- **Peticiones**: 3 archivos por página (HTML, CSS y JS) + favicon inline; sin fuentes ni CDN.
+- **Peso**: ~44 KB por página sin comprimir; los cinco archivos suman ~71 KB. `preview.png` no se carga.
+- **CSS compartido**: al cambiar de idioma, `styles.css` suele estar en caché; solo se descargan el
+  HTML y el JS de la otra versión.
 - **Dibujo**: la ruleta solo se redibuja al girar, cambiar opciones o redimensionar. No hay bucle
   permanente.
 - **Confeti**: máximo 120 partículas, un solo `requestAnimationFrame`, se detiene al vaciarse.
@@ -178,6 +202,7 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 | `AudioContext` / `webkitAudioContext` | Modernos | Sin sonido |
 | `Canvas 2D` | Universal | No hay ruleta |
 | `localStorage` | Universal (puede estar bloqueado) | Sin persistencia |
+| `hreflang` | Universal | Es solo una pista para buscadores; la navegación funciona igual |
 
 Público objetivo razonable: **Chrome/Edge/Firefox/Safari de los últimos años**. No hay polyfills ni
 transpilación; el código usa `const/let`, arrow functions, template literals, spread, `Array.find` y
@@ -187,12 +212,32 @@ transpilación; el código usa `const/let`, arrow functions, template literals, 
 
 Checklist al modificar:
 
-1. Mantener sincronizados los IDs de `index.html` y el objeto `els`.
-2. Si cambias el esquema guardado, actualizar `loadState`, `saveState`, este documento y el README.
-3. Si cambias `MAX_OPTIONS`, revisar el texto `0/20` inicial del HTML y el `maxlength` si aplica.
-4. Si cambias la paleta, comprobar contraste del texto del resultado (`#14182b` sobre porciones
-   claras) y el color de los chips.
-5. Probar el giro con 2, 8, 13 y 20 opciones (los casos de color y tamaño de fuente cambian).
-6. Repetir el plan de pruebas manual, sobre todo persistencia y teclado.
-7. Verificar móvil real o emulación a 360 px.
-8. Revisar que no se hayan añadido peticiones de red accidentales (privacidad y offline).
+1. Mantener sincronizados los IDs de ambos HTML y el objeto `els` de ambos JS.
+2. **Replicar los cambios de lógica en `app.js` y `en/app.js`** (o extraer un módulo compartido).
+3. Si cambias el esquema guardado, actualizar `loadState`, `saveState`, este documento y el README.
+4. Si cambias `MAX_OPTIONS`, revisar el texto `0/20` inicial de ambos HTML y el `maxlength` si aplica.
+5. Si cambias la paleta, comprobar contraste del texto del resultado (`#14182b` sobre porciones
+   claras) y el color de los chips, en ambos idiomas.
+6. Probar el giro con 2, 8, 13 y 20 opciones (los casos de color y tamaño de fuente cambian).
+7. Repetir el plan de pruebas manual en ES y, al menos, los casos clave en EN.
+8. Verificar móvil real o emulación a 360 px.
+9. Revisar que no se hayan añadido peticiones de red accidentales (privacidad y offline).
+10. Mantener el README sincronizado; ya lista las cinco piezas y enlaza a `doc/README.md`.
+
+## 10. Control de versiones
+
+El repositorio está inicializado en git (rama `main`). El historial registra la versión española
+original, la versión inglesa con selector de idioma, la documentación y el enlace a ella desde el
+README. El número exacto de commits puede variar:
+
+El árbol de trabajo puede contener ajustes locales sin confirmar (por ejemplo, esta misma
+documentación o retoques del README). Consulta siempre el estado real:
+
+```powershell
+git status
+git diff
+git log --oneline
+```
+
+No hay hooks, CI ni despliegue automatizado. Antes de publicar, confirma los cambios en un commit
+coherente.

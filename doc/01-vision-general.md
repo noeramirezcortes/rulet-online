@@ -71,7 +71,7 @@ stateDiagram-v2
 ```
 
 Estados reales del DOM: `#resultCard[data-state]` toma `idle`, `spinning` y `done`.
-El cambio de idioma es una navegación completa, no un estado de la SPA.
+El cambio de idioma es una navegación completa, no un estado de la aplicación.
 
 ## 5. Casos de uso típicos
 

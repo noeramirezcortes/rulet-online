@@ -54,7 +54,7 @@ Se usa la pila de sistema (sin fuentes externas). Tamaño base del navegador (16
 | Texto meta del resultado | `.82rem` | `--muted` |
 | Opciones | `.89rem` | Una línea con elipsis |
 | Botones | `.8rem` | 600 |
-| Enlace de idioma | `.72rem` | 700, mayúsculas, `letter-spacing: .06em` |
+| Enlace de idioma | `.72rem` | 700, texto `EN`/`ES`, `letter-spacing: .06em` |
 | Chips | `.78rem` | Una línea con elipsis |
 | Footer | `.78rem` (`.72rem` en móvil) | `#6f7896` |
 | Toast | `.86rem` | — |
@@ -86,7 +86,7 @@ Se usa la pila de sistema (sin fuentes externas). Tamaño base del navegador (16
 | --- | --- | --- |
 | Cabecera | `.topbar`, `.brand`, `.brand__icon` | Icono SVG en cuadro con degradado violeta→rosa |
 | Acciones de cabecera | `.topbar__actions` | Contenedor flex con gap de 8 px para idioma y sonido |
-| Enlace de idioma | `.lang-switch` | Píldora de 38 px de alto, borde sutil, texto `EN`/`ES`; navega a la otra página |
+| Enlace de idioma | `.lang-switch` | Botón rectangular redondeado de 38 px de alto, borde sutil, texto `EN`/`ES`; navega a la otra página |
 | Botón de icono | `.icon-btn` | 38×38, borde sutil, dos SVG (on/off) alternados por `aria-pressed` |
 | Badge | `.badge`, `.badge__dot` | Píldora con punto verde luminoso |
 | Ruleta | `.wheel`, `#wheelCanvas`, `.pointer`, `.hub` | Halo en `::before`, sombra en canvas, puntero con `clip-path`, hub con anillo pulsante |

@@ -1,6 +1,6 @@
 # Ruleta de la Suerte
 
-Aplicación web de una ruleta aleatoria, hecha con HTML, CSS y JavaScript puro. No necesita instalación, compilación ni dependencias: son tres archivos estáticos listos para subir a cualquier hosting.
+Aplicación web de una ruleta aleatoria, hecha con HTML, CSS y JavaScript puro. No necesita instalación, compilación ni dependencias: son archivos estáticos listos para subir a cualquier hosting.
 
 ![Vista de la ruleta](preview.png)
 
@@ -23,7 +23,11 @@ en/index.html    Estructura y contenido (inglés)
 styles.css       Diseño y animaciones (compartido)
 app.js           Lógica de la ruleta (español)
 en/app.js        Lógica de la ruleta (inglés)
+doc/             Documentación funcional y técnica
+preview.png      Captura de la interfaz
 ```
+
+La documentación detallada del proyecto está en [`doc/README.md`](doc/README.md).
 
 ## Uso local
 
@@ -46,7 +50,7 @@ Es un sitio 100 % estático. Cualquiera de estas opciones funciona:
 - **Netlify Drop**: arrastra la carpeta a https://app.netlify.com/drop.
 - **GitHub Pages**: sube los archivos al repositorio y activa Pages en *Settings → Pages*.
 - **Vercel**: importa el repositorio y despliega sin configuración adicional.
-- **Cualquier hosting compartido**: sube los tres archivos por FTP a la carpeta pública.
+- **Cualquier hosting compartido**: sube todo el contenido del repositorio por FTP a la carpeta pública.
 
 La versión en inglés vive en la carpeta `en/` y usa la misma hoja de estilos: al desplegar, queda disponible en `https://tu-dominio.com/en/`.
 

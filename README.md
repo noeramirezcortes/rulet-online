@@ -13,13 +13,16 @@ Aplicación web de una ruleta aleatoria, hecha con HTML, CSS y JavaScript puro. 
 - Atajos de teclado: `Espacio` para girar, `Enter` para añadir una opción.
 - Diseño responsive para móvil, tableta y escritorio.
 - Accesible: navegación por teclado, foco visible, etiquetas ARIA y respeto a `prefers-reduced-motion`.
+- Versión en inglés en `en/index.html`, con enlace para cambiar de idioma.
 
 ## Archivos
 
 ```
-index.html   Estructura y contenido
-styles.css   Diseño y animaciones
-app.js       Lógica de la ruleta
+index.html       Estructura y contenido (español)
+en/index.html    Estructura y contenido (inglés)
+styles.css       Diseño y animaciones (compartido)
+app.js           Lógica de la ruleta (español)
+en/app.js        Lógica de la ruleta (inglés)
 ```
 
 ## Uso local
@@ -45,6 +48,8 @@ Es un sitio 100 % estático. Cualquiera de estas opciones funciona:
 - **Vercel**: importa el repositorio y despliega sin configuración adicional.
 - **Cualquier hosting compartido**: sube los tres archivos por FTP a la carpeta pública.
 
+La versión en inglés vive en la carpeta `en/` y usa la misma hoja de estilos: al desplegar, queda disponible en `https://tu-dominio.com/en/`.
+
 ## Personalización
 
 En `app.js` puedes cambiar:
@@ -53,5 +58,7 @@ En `app.js` puedes cambiar:
 - `PALETTE`: los colores de las porciones.
 - `MAX_OPTIONS`: el límite de opciones (20 por defecto).
 - `STORAGE_KEY`: la clave usada para guardar en el navegador.
+
+En `en/app.js` están los mismos ajustes para la versión en inglés, con su propia `STORAGE_KEY` para que cada idioma conserve sus opciones por separado.
 
 En `styles.css`, las variables de `:root` controlan colores, tipografía y radios.

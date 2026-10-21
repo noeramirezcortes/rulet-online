@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spin the Wheel — Spin and decide</title>
+  <meta name="description" content="Free random wheel spinner to decide what to eat, who pays, or anything else. Add your options, spin, and let chance choose. No sign-up." />
+  <meta name="theme-color" content="#080a14" />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Spin the Wheel — Spin and decide" />
+  <meta property="og:description" content="Add your options, spin the wheel, and let chance choose. Free, no sign-up and no ads." />
+  <link rel="alternate" hreflang="es" href="../index.html" />
+  <link rel="alternate" hreflang="en" href="index.html" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%238b7bff'/%3E%3Cpath d='M32 8l7 13H25z' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%230b0e1c'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <canvas id="fx" class="fx" aria-hidden="true"></canvas>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 3v9M21 12h-9M12 21v-9M3 12h9" />
+            <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        <span>Wheel</span>
+      </div>
+      <div class="topbar__actions">
+        <a class="lang-switch" href="../index.html" hreflang="es" lang="es" aria-label="Cambiar a español">ES</a>
+        <button id="soundBtn" class="icon-btn" type="button" title="Mute sound" aria-label="Mute sound" aria-pressed="false">
+          <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+            <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+            <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+          </svg>
+          <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+            <path d="m16 9 5 6M21 9l-5 6" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <span class="badge"><span class="badge__dot"></span> Free · no sign-up</span>
+      <h1>Spin the wheel</h1>
+      <p class="hero__lede">Type your options, spin the wheel and let chance decide for you.</p>
+    </div>
+
+    <main class="stage">
+      <section class="stage__wheel" aria-label="Wheel">
+        <div class="wheel" id="wheel">
+          <canvas id="wheelCanvas" role="img" aria-label="Wheel"></canvas>
+          <div class="pointer" aria-hidden="true"></div>
+          <button id="spinBtn" class="hub" type="button" aria-label="Spin the wheel">
+            <span class="hub__label">SPIN</span>
+            <span class="hub__sub" id="hubSub">8 options</span>
+          </button>
+        </div>
+        <p class="hint">Click the wheel or press <kbd>Space</kbd></p>
+      </section>
+
+      <aside class="panel">
+        <section class="card result" id="resultCard" data-state="idle">
+          <div class="result__top">
+            <span class="result__label">Result</span>
+            <span class="result__status"><span class="dot"></span><span id="statusText">Ready</span></span>
+          </div>
+          <p class="result__value" id="resultValue" aria-live="polite" aria-atomic="true">—</p>
+          <p class="result__meta" id="resultMeta">Spin the wheel to see the winning option.</p>
+        </section>
+
+        <section class="card">
+          <div class="panel__head">
+            <h2 class="panel__title">Options <span class="count" id="optCount">0/20</span></h2>
+          </div>
+
+          <form class="add-form" id="optionForm" autocomplete="off">
+            <label class="sr-only" for="optionInput">New option</label>
+            <input id="optionInput" name="option" type="text" maxlength="40" placeholder="Add an option…" />
+            <button type="submit" aria-label="Add option">+</button>
+          </form>
+
+          <ul class="options" id="optionsList"></ul>
+          <p class="options-empty" id="optionsEmpty" hidden>Your wheel is empty. Add at least 2 options.</p>
+
+          <div class="panel__actions">
+            <button class="btn" id="shuffleBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h3.5c1.5 0 2.5.8 3.4 2l4.2 6c.9 1.2 1.9 2 3.4 2H21" />
+                <path d="M3 17h3.5c1.5 0 2.5-.8 3.4-2l4.2-6c.9-1.2 1.9-2 3.4-2H21" />
+                <path d="m18 4 3 3-3 3M18 14l3 3-3 3" />
+              </svg>
+              Shuffle
+            </button>
+            <button class="btn" id="resetBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Reset
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="panel__head">
+            <h2 class="panel__title">History</h2>
+          </div>
+          <div class="history" id="history"></div>
+          <p class="history-empty" id="historyEmpty">No results yet.</p>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <p>Built with HTML, CSS and JavaScript · Your options are saved in this browser</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <p class="noscript">Enable JavaScript in your browser to spin the wheel.</p>
+  </noscript>
+
+  <script src="app.js"></script>
+</body>
+</html>

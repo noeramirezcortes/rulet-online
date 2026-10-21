@@ -1,0 +1,14 @@
+# Sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Configuración local de agentes/herramientas
+.agents/
+.devin/
+.vibe/
+skills-lock.json
+
+# Pruebas locales
+_*-test.html
+*.log

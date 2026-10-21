@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ruleta de la Suerte — Gira y decide</title>
+  <meta name="description" content="Ruleta aleatoria gratis para decidir qué comer, quién paga o cualquier otra cosa. Añade tus opciones, gira y deja que el azar elija. Sin registro." />
+  <meta name="theme-color" content="#080a14" />
+  <meta name="color-scheme" content="dark" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Ruleta de la Suerte — Gira y decide" />
+  <meta property="og:description" content="Añade tus opciones, gira la ruleta y deja que el azar elija. Gratis, sin registro y sin anuncios." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%238b7bff'/%3E%3Cpath d='M32 8l7 13H25z' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%230b0e1c'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <canvas id="fx" class="fx" aria-hidden="true"></canvas>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 3v9M21 12h-9M12 21v-9M3 12h9" />
+            <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        <span>Ruleta</span>
+      </div>
+      <button id="soundBtn" class="icon-btn" type="button" title="Silenciar sonido" aria-label="Silenciar sonido" aria-pressed="false">
+        <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M18.5 5.5a9 9 0 0 1 0 13" />
+        </svg>
+        <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+          <path d="m16 9 5 6M21 9l-5 6" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="hero">
+      <span class="badge"><span class="badge__dot"></span> Gratis · sin registro</span>
+      <h1>Ruleta de la suerte</h1>
+      <p class="hero__lede">Escribe tus opciones, gira la ruleta y deja que el azar decida por ti.</p>
+    </div>
+
+    <main class="stage">
+      <section class="stage__wheel" aria-label="Ruleta">
+        <div class="wheel" id="wheel">
+          <canvas id="wheelCanvas" role="img" aria-label="Ruleta"></canvas>
+          <div class="pointer" aria-hidden="true"></div>
+          <button id="spinBtn" class="hub" type="button" aria-label="Girar la ruleta">
+            <span class="hub__label">GIRAR</span>
+            <span class="hub__sub" id="hubSub">8 opciones</span>
+          </button>
+        </div>
+        <p class="hint">Haz clic en la ruleta o pulsa <kbd>Espacio</kbd></p>
+      </section>
+
+      <aside class="panel">
+        <section class="card result" id="resultCard" data-state="idle">
+          <div class="result__top">
+            <span class="result__label">Resultado</span>
+            <span class="result__status"><span class="dot"></span><span id="statusText">Lista</span></span>
+          </div>
+          <p class="result__value" id="resultValue" aria-live="polite" aria-atomic="true">—</p>
+          <p class="result__meta" id="resultMeta">Gira la ruleta para ver la opción ganadora.</p>
+        </section>
+
+        <section class="card">
+          <div class="panel__head">
+            <h2 class="panel__title">Opciones <span class="count" id="optCount">0/20</span></h2>
+          </div>
+
+          <form class="add-form" id="optionForm" autocomplete="off">
+            <label class="sr-only" for="optionInput">Nueva opción</label>
+            <input id="optionInput" name="option" type="text" maxlength="40" placeholder="Añade una opción…" />
+            <button type="submit" aria-label="Añadir opción">+</button>
+          </form>
+
+          <ul class="options" id="optionsList"></ul>
+          <p class="options-empty" id="optionsEmpty" hidden>Tu ruleta está vacía. Añade al menos 2 opciones.</p>
+
+          <div class="panel__actions">
+            <button class="btn" id="shuffleBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h3.5c1.5 0 2.5.8 3.4 2l4.2 6c.9 1.2 1.9 2 3.4 2H21" />
+                <path d="M3 17h3.5c1.5 0 2.5-.8 3.4-2l4.2-6c.9-1.2 1.9-2 3.4-2H21" />
+                <path d="m18 4 3 3-3 3M18 14l3 3-3 3" />
+              </svg>
+              Mezclar
+            </button>
+            <button class="btn" id="resetBtn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+              Restablecer
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="panel__head">
+            <h2 class="panel__title">Historial</h2>
+          </div>
+          <div class="history" id="history"></div>
+          <p class="history-empty" id="historyEmpty">Aún no hay resultados.</p>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <p>Hecha con HTML, CSS y JavaScript · Tus opciones se guardan en este navegador</p>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript>
+    <p class="noscript">Activa JavaScript en tu navegador para poder girar la ruleta.</p>
+  </noscript>
+
+  <script src="app.js"></script>
+</body>
+</html>

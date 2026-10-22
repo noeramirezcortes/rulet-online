@@ -5,6 +5,7 @@ Desktop.ini
 
 # Configuración local de agentes/herramientas
 .agents/
+.claude/
 .devin/
 .vibe/
 skills-lock.json

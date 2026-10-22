@@ -40,7 +40,7 @@ Instrumento de decisión instantáneo, sin registro, sin anuncios y sin servidor
 
 - Nombre: «Ruleta de la suerte» / «Spin the Wheel».
 - Voz directa, breve y cordial, sin hype de casino ni promesas de premios.
-- Identidad visual aprobada por el usuario: almanaque editorial en marfil (día) y tinta (noche), acento bermellón, filetes finos y tipografía didone.
+- Identidad visual en la rama `ultimodesing` (propuesta, pendiente de aprobar): «Aurora», paneles de vidrio sobre una aurora en movimiento, noche por defecto y día en pastel. El diseño «almanaque editorial» sigue en `main`.
 
 ## Evidence on Hand
 

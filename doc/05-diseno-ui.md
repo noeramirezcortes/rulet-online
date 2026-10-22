@@ -1,3 +1,5 @@
+> **Nota (rama `ultimodesing`):** este documento describe el diseño «almanaque editorial» de `main`. El diseño «Aurora» de esta rama está en `DESIGN.md`; las secciones de paleta, tipografía y componentes de aquí no aplican.
+
 # 05 · Diseño y UI
 
 ## 1. Intención visual

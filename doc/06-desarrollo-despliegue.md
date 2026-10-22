@@ -78,7 +78,7 @@ Recomendaciones:
 | Sonido | `app.js`, `en/app.js` | Frecuencias, tipos de onda y ganancias en `playTick` / `playFanfare` |
 | Tema visual | `styles.css` | Tokens de `:root` (día) y `[data-theme="night"]` (noche); afecta a ambos idiomas |
 | Tipografía | `styles.css`, `assets/fonts/` | Sustituye los woff2 y actualiza los `@font-face` y los `preload` del `<head>` |
-| Enlace de idioma | `index.html`, `en/index.html`, `styles.css` | Texto `EN`/`ES`, `href`, `hreflang` y estilos de `.lang-link` |
+| Enlace de idioma | `index.html`, `en/index.html`, `styles.css` | Texto `EN`/`ES`, `href` (URL absoluta del otro subdominio), `hreflang` y estilos de `.lang-link` |
 | Puntos de ruptura | `styles.css` | 1020 px y 640 px |
 | Textos, título y SEO | `index.html`, `en/index.html` | `<title>`, `meta description`, OG, hero, footer |
 | Favicon | `index.html`, `en/index.html` | SVG en data URI |

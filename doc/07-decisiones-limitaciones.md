@@ -79,9 +79,11 @@
 25. **Sin `og:image`** pese a existir `preview.png`; al compartir no se muestra miniatura.
 26. **Sin service worker.** No hay instalación como PWA ni garantía de funcionamiento offline tras
     limpiar caché.
-27. **`hreflang` incompleto para producción.** Son rutas relativas (`index.html`, `en/index.html`), no
-    URLs absolutas, y no hay `x-default` ni `canonical`. Los buscadores pueden ignorarlas o resolverlas
-    de forma ambigua.
+27. **`hreflang` sin `x-default` ni `canonical`.** Los `hreflang` y los enlaces `EN`/`ES` son URLs
+    absolutas (`https://ruleta.yadale.click/` y `https://roulette.yadale.click/en/`) porque cada idioma
+    vive en su propio subdominio; una ruta relativa no puede cruzar de uno a otro (desde `/en/`,
+    `../index.html` volvía al inglés por la redirección de `/` a `/en/`). Como consecuencia, en local el
+    enlace de idioma lleva a producción.
 28. **Fuentes locales, no un CDN.** Son ~190 KB en total; la primera visita descarga las dos latinas
     precargadas (~71 KB) y el resto solo si aparece texto que las necesite.
 
@@ -115,8 +117,7 @@
    - Revisar el contraste del pie, placeholders y textos vacíos en ambos temas.
 5. **Validar el historial al cargar**: recortar etiquetas a 40 caracteres y aceptar solo colores
    `#rgb`/`#rrggbb` (o caer a un color por defecto).
-6. **Completar SEO bilingüe**: `hreflang` absolutos, `x-default`, `canonical` y `og:image` con
-   `preview.png`.
+6. **Completar SEO bilingüe**: `x-default`, `canonical` y `og:image` con `preview.png`.
 
 ### Prioridad media
 
@@ -215,8 +216,8 @@
 | Contraste de las etiquetas del canvas | ✅ peor par 4,70:1 (`#E0338F`); la paleta es la misma en ambos temas |
 | Sintaxis de ambos JS | ✅ `node --check` |
 | Rutas HTTP `/`, `/en/`, `styles.css`, `en/app.js` y fuentes | ✅ 200 con un servidor local |
-| `hreflang` y `og:locale` en ambas páginas | ✅ (rutas relativas) |
-| Enlace de idioma recíproco | ✅ (`en/index.html` ↔ `../index.html`) |
+| `hreflang` y `og:locale` en ambas páginas | ✅ (URLs absolutas) |
+| Enlace de idioma recíproco | ✅ (`ruleta.yadale.click` ↔ `roulette.yadale.click/en/`), comprobado con `curl` |
 | Revisión visual en Chrome | ✅ escritorio (≈1540×780) y móvil de 390 px; día, noche y resultado; ES y EN. Sin errores de consola. No se revisaron 820/320 px ni el estado vacío con el nuevo diseño |
 | Detector Impeccable | ⚠️ No se ha vuelto a ejecutar con el diseño Aurora |
 | Tests / lint / CI | ⚠️ Ausentes |

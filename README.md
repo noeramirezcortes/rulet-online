@@ -24,7 +24,7 @@ en/index.html       Estructura y contenido (inglés)
 styles.css          Sistema visual, temas y animaciones (compartido)
 app.js              Lógica de la ruleta (español)
 en/app.js           Lógica de la ruleta (inglés)
-assets/fonts/       Bodoni Moda y Karla autoalojadas (woff2)
+assets/fonts/       Bricolage Grotesque y Space Mono autoalojadas (woff2)
 doc/                Documentación funcional y técnica
 DESIGN.md           Sistema visual: tokens, tipografía y componentes
 PRODUCT.md          Propósito, público y criterios de producto
@@ -70,4 +70,4 @@ En `app.js` puedes cambiar:
 
 En `en/app.js` están los mismos ajustes para la versión en inglés, con su propia `STORAGE_KEY` para que cada idioma conserve sus opciones por separado.
 
-En `styles.css`, los tokens de `:root` definen la edición de día y `[data-theme="night"]` la de noche: papel, tinta, bermellón, filetes, sombras y tipografías. La estructura y los componentes usan esos tokens, así que un cambio de paleta afecta a ambos temas y a los dos idiomas.
+En `styles.css`, los tokens de `:root` definen la edición de día y `[data-theme="night"]` la de noche: fondo, superficies, tinta, acento, lima, coral, sombras duras y tipografías. La estructura y los componentes usan esos tokens, así que un cambio de paleta afecta a ambos temas y a los dos idiomas.

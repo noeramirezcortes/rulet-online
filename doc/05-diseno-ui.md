@@ -1,3 +1,5 @@
+> **Nota (rama `dev`):** este documento describe el diseño «almanaque editorial» de `main`. El diseño «Pop» de la rama `dev` está descrito en `DESIGN.md`; las secciones de paleta, tipografía y componentes de aquí no aplican a `dev`.
+
 # 05 · Diseño y UI
 
 ## 1. Intención visual

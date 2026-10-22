@@ -9,8 +9,9 @@
   const STORAGE_KEY = "spin-the-wheel:v1";
   const THEME_KEY = "ruleta-theme";
   const MAX_OPTIONS = 20;
-  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const FONT = '"Karla", "Segoe UI", system-ui, sans-serif';
+  const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const reduced = () => reducedQuery.matches;
+  const FONT = '"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif';
 
   const DEFAULT_OPTIONS = [
     "Pizza", "Sushi", "Burger", "Tacos",
@@ -18,6 +19,8 @@
   ];
 
   /* ============================ Copia ============================ */
+
+  const plural = new Intl.PluralRules("en");
 
   const COPY = {
     themeToNight: "Switch to night mode",
@@ -32,15 +35,13 @@
     metaDone: "Chance has spoken. Spin again if you don't like it.",
     needTwo: "Add at least two options to spin",
     maxOptions: (max) => `You can add up to ${max} options`,
+    emptyOption: "Type an option first",
     shuffled: "Options shuffled",
     resetConfirm: "Reset the wheel, the verdict and the history?",
     resetDone: "Back to the starting point",
     removeOption: (label) => `Remove ${label}`,
-    hubCount: (n) => (n === 1 ? "1 option" : `${n} options`),
-    wheelAria: (n, list) => (n ? `Wheel with ${n} options: ${list}` : "Empty wheel"),
-    dateline: (date) => new Intl.DateTimeFormat("en-US", {
-      weekday: "long", day: "numeric", month: "long", year: "numeric"
-    }).format(date)
+    hubCount: (n) => `${n} ${plural.select(n) === "one" ? "option" : "options"}`,
+    wheelAria: (n, list) => (n ? `Wheel with ${n} options: ${list}` : "Empty wheel")
   };
 
 /* ============================ Fin de copia ============================ */
@@ -48,29 +49,23 @@
   const THEMES = {
     day: {
       palette: [
-        "#B83E27", "#E4D5B8", "#2C4A44", "#D8A44E",
-        "#33405C", "#D9A6A0", "#5A6A32", "#CFC7B4",
-        "#6A3E58", "#B7C6BC", "#8C3B2C", "#DCC49A"
+        "#3A4BFF", "#FFD23F", "#FF5B3A", "#19C79A",
+        "#B36BFF", "#FF8FC7", "#1FA2FF", "#C8F13C",
+        "#7A2CFF", "#FF9A1F", "#0E8F6E", "#F4F1E8"
       ],
-      ink: "#1A1611",
-      paper: "#F4EEE1",
-      tick: "rgba(26, 22, 17, 0.36)",
-      tickStrong: "rgba(26, 22, 17, 0.62)",
-      ring: "rgba(26, 22, 17, 0.5)",
-      empty: "rgba(26, 22, 17, 0.28)"
+      ink: "#12131F",
+      paper: "#FFFFFF",
+      ring: "#12131F"
     },
     night: {
       palette: [
-        "#E0704D", "#E2D2B4", "#41706A", "#E0AC58",
-        "#4A5B82", "#D8A49C", "#7E8F49", "#C9C1AE",
-        "#7A4C6C", "#AFC5B7", "#D97A5B", "#D6BA86"
+        "#6A78FF", "#FFD84F", "#FF6B4A", "#2BD9AA",
+        "#C084FF", "#FF9ED0", "#34B4FF", "#D2F54F",
+        "#9D5CFF", "#FFA83A", "#1FB58D", "#E9E6DA"
       ],
-      ink: "#15120E",
-      paper: "#F2E9D8",
-      tick: "rgba(242, 233, 216, 0.3)",
-      tickStrong: "rgba(242, 233, 216, 0.55)",
-      ring: "rgba(242, 233, 216, 0.4)",
-      empty: "rgba(242, 233, 216, 0.24)"
+      ink: "#0C0D16",
+      paper: "#F1F2FB",
+      ring: "#F1F2FB"
     }
   };
 
@@ -84,9 +79,11 @@
     resultCard: $("resultCard"),
     resultValue: $("resultValue"),
     resultMeta: $("resultMeta"),
+    resultLive: $("resultLive"),
     statusText: $("statusText"),
     form: $("optionForm"),
     input: $("optionInput"),
+    hint: $("optionHint"),
     list: $("optionsList"),
     empty: $("optionsEmpty"),
     count: $("optCount"),
@@ -96,7 +93,6 @@
     historyEmpty: $("historyEmpty"),
     soundBtn: $("soundBtn"),
     themeBtn: $("themeBtn"),
-    issueDate: $("issueDate"),
     themeColor: $("themeColor"),
     toast: $("toast"),
     fx: $("fx")
@@ -230,7 +226,7 @@
     els.themeBtn.setAttribute("aria-pressed", String(night));
     els.themeBtn.setAttribute("aria-label", label);
     els.themeBtn.title = label;
-    if (els.themeColor) els.themeColor.setAttribute("content", night ? "#15120e" : "#f4eee1");
+    if (els.themeColor) els.themeColor.setAttribute("content", night ? "#0c0d16" : "#eceffb");
   }
 
   function setTheme(theme, persist) {
@@ -322,34 +318,12 @@
     return cut.trimEnd() + "…";
   }
 
-  function drawTicks(R, theme) {
-    const inner = R + 4;
-    const outer = R + 11;
-
-    for (let i = 0; i < 144; i++) {
-      const angle = (i / 144) * TAU;
-      const cardinal = i % 12 === 0;
-      ctx.beginPath();
-      ctx.lineWidth = cardinal ? 1.6 : 1;
-      ctx.strokeStyle = cardinal ? theme.tickStrong : theme.tick;
-      ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
-      ctx.lineTo(Math.cos(angle) * (cardinal ? outer + 2 : outer), Math.sin(angle) * (cardinal ? outer + 2 : outer));
-      ctx.stroke();
-    }
-
-    ctx.beginPath();
-    ctx.arc(0, 0, R + 15, 0, TAU);
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = theme.ring;
-    ctx.stroke();
-  }
-
   function draw() {
     if (!wheelSize) return;
 
     const W = wheelSize;
     const theme = palette();
-    const R = W / 2 - 26;
+    const R = W / 2 - 6;
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, W, W);
@@ -358,14 +332,12 @@
 
     const n = options.length;
 
-    drawTicks(R, theme);
-
     if (!n) {
       ctx.beginPath();
       ctx.arc(0, 0, R, 0, TAU);
-      ctx.setLineDash([3, 8]);
-      ctx.lineWidth = 1.4;
-      ctx.strokeStyle = theme.empty;
+      ctx.setLineDash([10, 9]);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = theme.ring;
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.restore();
@@ -374,9 +346,9 @@
 
     const segment = TAU / n;
     const colors = colorsFor(n);
-    const fontSize = Math.max(11, Math.min(22, R * (n >= 16 ? 0.062 : n >= 11 ? 0.073 : 0.084)));
+    const fontSize = Math.max(12, Math.min(24, R * (n >= 16 ? 0.066 : n >= 11 ? 0.078 : 0.09)));
 
-    // Porciones en tintas planas.
+    // Porciones en colores planos.
     for (let i = 0; i < n; i++) {
       const start = rotation + i * segment;
       ctx.beginPath();
@@ -387,9 +359,10 @@
       ctx.fill();
     }
 
-    // Separadores finos, como cortes de imprenta.
-    ctx.lineWidth = Math.max(1.5, R * 0.008);
-    ctx.strokeStyle = theme.paper;
+    // Separadores gruesos de tinta.
+    ctx.lineWidth = Math.max(2.5, R * 0.012);
+    ctx.lineCap = "round";
+    ctx.strokeStyle = theme.ink;
     for (let i = 0; i < n; i++) {
       const angle = rotation + i * segment;
       ctx.beginPath();
@@ -398,9 +371,9 @@
       ctx.stroke();
     }
 
-    // Etiquetas: tinta oscura sobre tintas claras, papel sobre tintas oscuras.
+    // Etiquetas: tinta oscura sobre colores claros, blanco sobre colores oscuros.
     // En la mitad izquierda se giran 180° para que siempre se lean de pie.
-    ctx.font = `600 ${fontSize}px ${FONT}`;
+    ctx.font = `700 ${fontSize}px ${FONT}`;
     ctx.textBaseline = "middle";
     const maxWidth = R * 0.56;
 
@@ -409,16 +382,17 @@
       const flipped = Math.cos(angle) < 0;
       ctx.save();
       ctx.rotate(angle + (flipped ? Math.PI : 0));
-      ctx.translate((flipped ? -1 : 1) * R * 0.93, 0);
+      ctx.translate((flipped ? -1 : 1) * R * 0.92, 0);
       ctx.textAlign = flipped ? "left" : "right";
       ctx.fillStyle = labelColor(colors[i], theme);
       ctx.fillText(fitLabel(options[i], maxWidth), 0, 0);
       ctx.restore();
     }
 
+    // Aro exterior.
     ctx.beginPath();
-    ctx.arc(0, 0, R + 15, 0, TAU);
-    ctx.lineWidth = 1;
+    ctx.arc(0, 0, R, 0, TAU);
+    ctx.lineWidth = 6;
     ctx.strokeStyle = theme.ring;
     ctx.stroke();
 
@@ -450,7 +424,7 @@
   }
 
   function burstConfetti() {
-    if (REDUCED) return;
+    if (reduced()) return;
 
     const rect = els.canvas.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
@@ -535,9 +509,18 @@
     els.statusText.textContent = COPY.statusDone;
     els.resultMeta.textContent = COPY.metaDone;
 
-    els.resultCard.classList.remove("is-pop");
-    void els.resultCard.offsetWidth;
-    els.resultCard.classList.add("is-pop");
+    els.resultLive.textContent = "";
+    window.setTimeout(() => { els.resultLive.textContent = `${COPY.statusDone}: ${label}`; }, 60);
+
+    if (!reduced() && els.resultValue.animate) {
+      els.resultValue.animate(
+        [
+          { opacity: 0, transform: "translateY(10px) scale(0.96)" },
+          { opacity: 1, transform: "translateY(0) scale(1)" }
+        ],
+        { duration: 420, easing: "cubic-bezier(0.16, 0.84, 0.24, 1)" }
+      );
+    }
 
     history.unshift({ label, color });
     history = history.slice(0, 12);
@@ -551,7 +534,7 @@
     // En móvil, asegura que el resultado quede a la vista.
     const rect = els.resultCard.getBoundingClientRect();
     if (rect.bottom > window.innerHeight || rect.top < 0) {
-      els.resultCard.scrollIntoView({ behavior: REDUCED ? "auto" : "smooth", block: "nearest" });
+      els.resultCard.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "nearest" });
     }
   }
 
@@ -560,7 +543,7 @@
 
     if (options.length < 2) {
       toast(COPY.needTwo);
-      els.input.focus();
+      if (window.matchMedia("(pointer: fine)").matches) els.input.focus();
       return;
     }
 
@@ -581,10 +564,10 @@
     const winner = Math.floor(Math.random() * n);
     const jitter = (Math.random() - 0.5) * segment * 0.44;
     const target = -Math.PI / 2 - (winner + 0.5) * segment - jitter;
-    const turns = REDUCED ? 2 : 5 + Math.floor(Math.random() * 3);
+    const turns = reduced() ? 2 : 5 + Math.floor(Math.random() * 3);
     const delta = normalize(target - normalize(rotation)) + TAU * turns;
     const startRotation = rotation;
-    const duration = REDUCED ? 650 : 4400 + Math.random() * 1400;
+    const duration = reduced() ? 650 : 4400 + Math.random() * 1400;
     const startTime = performance.now();
     let lastIndex = getIndexAtPointer(rotation);
     let lastTick = 0;
@@ -621,8 +604,10 @@
 
   function syncControls() {
     const busy = spinning;
-    els.spinBtn.disabled = busy || options.length < 2;
-    els.input.disabled = busy;
+    // El botón de girar no se desactiva en pleno giro para no perder el foco del teclado.
+    els.spinBtn.disabled = options.length < 2;
+    els.spinBtn.setAttribute("aria-disabled", String(busy));
+    els.input.readOnly = busy;
     els.form.querySelector("button").disabled = busy;
     els.shuffleBtn.disabled = busy || options.length < 2;
     els.resetBtn.disabled = busy;
@@ -675,7 +660,7 @@
     els.history.textContent = "";
 
     history.slice(0, 10).forEach((entry) => {
-      const chip = document.createElement("span");
+      const chip = document.createElement("li");
       chip.className = "chip";
 
       const dot = document.createElement("span");
@@ -693,16 +678,28 @@
     els.historyEmpty.hidden = history.length > 0;
   }
 
+  function showHint(message, isError) {
+    els.hint.textContent = message;
+    els.hint.classList.toggle("is-error", Boolean(isError && message));
+    if (isError && message) els.input.setAttribute("aria-invalid", "true");
+    else els.input.removeAttribute("aria-invalid");
+  }
+
   function addOption(raw) {
     if (spinning) return;
     const text = raw.trim().replace(/\s+/g, " ");
-    if (!text) return;
-
-    if (options.length >= MAX_OPTIONS) {
-      toast(COPY.maxOptions(MAX_OPTIONS));
+    if (!text) {
+      showHint(COPY.emptyOption, true);
+      els.input.focus();
       return;
     }
 
+    if (options.length >= MAX_OPTIONS) {
+      showHint(COPY.maxOptions(MAX_OPTIONS), true);
+      return;
+    }
+
+    showHint("", false);
     options.push(text.slice(0, 40));
     els.input.value = "";
     els.input.focus();
@@ -715,6 +712,11 @@
     options.splice(index, 1);
     renderOptions();
     saveState();
+
+    // La lista se reconstruye: devuelve el foco al botón vecino (o al campo si no queda ninguno).
+    const buttons = els.list.querySelectorAll(".option__remove");
+    const next = buttons[Math.min(index, buttons.length - 1)];
+    (next || els.input).focus();
   }
 
   function shuffleOptions() {
@@ -740,7 +742,8 @@
     els.resultMeta.textContent = COPY.metaIdle;
     els.statusText.textContent = COPY.statusIdle;
     els.resultCard.dataset.state = "idle";
-    els.resultCard.classList.remove("is-pop");
+    els.resultLive.textContent = "";
+    showHint("", false);
 
     renderOptions();
     renderHistory();
@@ -753,6 +756,10 @@
   els.form.addEventListener("submit", (event) => {
     event.preventDefault();
     addOption(els.input.value);
+  });
+
+  els.input.addEventListener("input", () => {
+    if (els.input.hasAttribute("aria-invalid")) showHint("", false);
   });
 
   els.spinBtn.addEventListener("click", spin);
@@ -804,8 +811,6 @@
   /* ============================ Inicio ============================ */
 
   if (!loadState()) options = [...DEFAULT_OPTIONS];
-
-  if (els.issueDate) els.issueDate.textContent = COPY.dateline(new Date());
 
   updateSoundUI();
   syncThemeUI();

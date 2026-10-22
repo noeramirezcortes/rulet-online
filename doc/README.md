@@ -42,7 +42,7 @@ En la raíz del repositorio, fuera de `doc/`, hay dos documentos de referencia d
 | Entradas | `index.html` (español) y `en/index.html` (inglés) |
 | Lógica | `app.js` (español) y `en/app.js` (inglés), prácticamente duplicados |
 | Estilos | `styles.css`, **compartido** por ambos idiomas y ambos temas |
-| Fuentes | `assets/fonts/`: Bodoni Moda y Karla, seis woff2 autoalojados (latín y latín-ext, con cursiva) |
+| Fuentes | `assets/fonts/`: Bricolage Grotesque (latín y latín-ext) y Space Mono 400/700 (latín), cuatro woff2 autoalojados |
 | Temas | Día y noche; conmutador en cabecera, preferencia en `ruleta-theme` y respeto a `prefers-color-scheme` en la primera visita |
 | Captura | `preview.png` (1440×1312, solo documentación) |
 | Tamaño del código | ES: HTML 180 + CSS 977 + JS 824 líneas · EN: HTML 180 + JS 821 líneas |
@@ -52,7 +52,7 @@ En la raíz del repositorio, fuera de `doc/`, hay dos documentos de referencia d
 | Persistencia | `localStorage`: `ruleta-de-la-suerte:v1` (ES), `spin-the-wheel:v1` (EN) y `ruleta-theme` (compartida) |
 | Tests automatizados | **No existen**; hay un plan de pruebas manual en el documento 06 |
 | Idiomas | Español (raíz) e inglés (`/en/`), con enlace cruzado y `hreflang` |
-| Repositorio git | Inicializado, con `.gitignore`; el rediseño se desarrolla en la rama `rediseno-almanaque` |
+| Repositorio git | Inicializado, con `.gitignore`; el rediseño «Pop» se desarrolla en la rama `dev`; `main` conserva el almanaque |
 | Carpeta `doc/` | Esta documentación (no la usa la app) |
 
 ## Verificación realizada

@@ -26,7 +26,7 @@ herraminetasweb/
 │  └─ app.js           Lógica inglesa (copia traducida)
 ├─ styles.css          Estilos compartidos por ambos idiomas
 ├─ assets/fonts/       Unbounded y Manrope autoalojadas (4 woff2)
-├─ preview.png         Captura 1440×1312 usada en el README
+├─ preview.png         Captura 1440×1320 usada en el README
 ├─ README.md           Guía breve de uso y personalización
 ├─ PRODUCT.md          Verdad de producto
 ├─ DESIGN.md           Sistema visual y tokens

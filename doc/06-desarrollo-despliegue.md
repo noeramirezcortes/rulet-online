@@ -73,7 +73,7 @@ Recomendaciones:
 | Máximo de opciones | `app.js`, `en/app.js` | `MAX_OPTIONS`. El contador se actualiza solo |
 | Longitud máxima de una opción | `index.html`, `en/index.html`, ambos JS | Cambia el `maxlength` y los dos `slice(0, 40)` de cada JS |
 | Claves de almacenamiento | `app.js`, `en/app.js` | `STORAGE_KEY` por idioma y `THEME_KEY` compartida; cambiarlas invalida los datos |
-| Velocidad / vueltas | `app.js`, `en/app.js` | `turns`, `duration` y los valores de `REDUCED` dentro de `spin` |
+| Velocidad / vueltas | `app.js`, `en/app.js` | `turns`, `duration` y los valores de `reduced()` dentro de `spin` |
 | Confeti | `app.js`, `en/app.js` | `60` móvil / `100` escritorio en `burstConfetti` |
 | Sonido | `app.js`, `en/app.js` | Frecuencias, tipos de onda y ganancias en `playTick` / `playFanfare` |
 | Tema visual | `styles.css` | Tokens de `:root` (día) y `[data-theme="night"]` (noche); afecta a ambos idiomas |
@@ -119,7 +119,7 @@ location.reload();
 
 - **DevTools → Application → Local Storage**: ver/editar/borrar las dos claves.
 - **DevTools → Rendering → Emulate CSS media feature `prefers-reduced-motion`**: probar el modo reducido
-  (requiere recargar porque `REDUCED` se lee al inicio).
+  (el CSS reacciona al instante; `reduced()` consulta la preferencia en cada giro).
 - **DevTools → Performance**: revisar frames durante el giro y el confeti.
 - **Lighthouse / axe**: accesibilidad, contraste y buenas prácticas, en `/` y `/en/`.
 - **Consola**: los errores de `localStorage` se silencian a propósito; para depurarlos, pon un
@@ -195,15 +195,17 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 - **Confeti**: máximo 100 flecos, un solo `requestAnimationFrame`, se detiene al vaciarse.
 - **DPR** limitado a 2 para evitar canvas gigantes en pantallas 3x/4x.
 - **DOM**: la lista se reconstruye entera en cada cambio, pero el máximo es 20 elementos.
-- **Coste potencial**: las sombras de la lámina y el canvas a DPR 2 pueden notarse en móviles
-  modestos; no hay `backdrop-filter` ni halos.
+- **Coste potencial**: el `backdrop-filter` de los paneles de vidrio, las dos capas de aurora
+  animadas (solo `transform`), las bombillas y el canvas a DPR 2 pueden notarse en móviles modestos.
+  `prefers-reduced-motion` apaga las animaciones.
 - **Sin memoria acumulada**: los nodos antiguos se descartan; los listeners mueren con ellos.
 
 ## 8. Compatibilidad
 
 | Característica | Requiere | Si falta |
 | --- | --- | --- |
-| `color-mix()` | Chrome/Edge 111+, Firefox 113+, Safari 16.4+ | El filete del veredicto usa el color puro de la porción; el resto igual |
+| `color-mix()` | Chrome/Edge 111+, Firefox 113+, Safari 16.4+ | Se pierden el halo de la rueda, el tinte de la tarjeta del veredicto y el `text-shadow` del ganador; el resto igual |
+| `backdrop-filter` | Chrome/Edge 76+, Safari 9+ (con prefijo), Firefox 103+ | Los paneles quedan semitransparentes sobre la aurora, sin desenfoque |
 | `aspect-ratio` | Navegadores de 2021+ | La ruleta podría deformarse |
 | `100svh` | Chrome 108+, Safari 15.4+, Firefox 101+ | Se ignora `min-height` |
 | `text-wrap: balance` / `pretty` | Chrome 114+, Safari 17.5+, Firefox 121+ | Los títulos y el colofón parten de forma menos cuidada |
@@ -239,8 +241,9 @@ Checklist al modificar:
 ## 10. Control de versiones
 
 El repositorio está inicializado en git. `main` conserva la versión española original, la versión
-inglesa con selector de idioma, la documentación y el enlace a ella desde el README. El rediseño
-editorial con temas día/noche se desarrolla en la rama `rediseno-almanaque`. El número exacto de
+inglesa con selector de idioma, la documentación y el enlace a ella desde el README. El diseño
+**Aurora** (vidrio, aurora y bisel cromado) es el vigente en `main`; el diseño anterior, «almanaque
+editorial», sigue en el historial y en la rama `rediseno-almanaque`. El número exacto de
 commits puede variar:
 
 El árbol de trabajo puede contener ajustes locales sin confirmar (por ejemplo, esta misma

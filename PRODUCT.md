@@ -40,7 +40,7 @@ Instrumento de decisión instantáneo, sin registro y sin servidor: las opciones
 
 - Nombre: «Ruleta de la suerte» / «Spin the Wheel».
 - Voz directa, breve y cordial, sin hype de casino ni promesas de premios.
-- Identidad visual en la rama `ultimodesing` (propuesta, pendiente de aprobar): «Aurora», paneles de vidrio sobre una aurora en movimiento, noche por defecto y día en pastel. El diseño «almanaque editorial» sigue en `main`.
+- Identidad visual oficial: «Aurora», paneles de vidrio sobre una aurora en movimiento, ruleta con bisel cromado y bombillas, noche por defecto y día en pastel, acentos violeta, cian y rosa, y tipografía Unbounded + Manrope. Sustituye al «almanaque editorial» anterior (marfil, bermellón, didone), que queda en el historial de git.
 
 ## Evidence on Hand
 

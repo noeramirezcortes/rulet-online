@@ -2,7 +2,7 @@
 
 Aplicación web de una ruleta aleatoria, hecha con HTML, CSS y JavaScript puro. No necesita instalación, compilación ni dependencias: son archivos estáticos listos para subir a cualquier hosting.
 
-![La ruleta en modo día](preview.png)
+![La ruleta Aurora en modo día](preview.png)
 
 ## Funciones
 

@@ -48,12 +48,12 @@
   const THEMES = {
     day: {
       palette: [
-        "#B83E27", "#E4D5B8", "#2C4A44", "#D8A44E",
-        "#33405C", "#D9A6A0", "#5A6A32", "#CFC7B4",
-        "#6A3E58", "#B7C6BC", "#8C3B2C", "#DCC49A"
+        "#F28C54", "#A6D9D2", "#EEC967", "#9DB7E5",
+        "#E9AAB0", "#89C4A6", "#F2B877", "#B7CCED",
+        "#D7B4DF", "#C3DB98", "#E99B82", "#B4D8DB"
       ],
-      ink: "#1A1611",
-      paper: "#F4EEE1",
+      ink: "#172C4B",
+      paper: "#FFFFFF",
       tick: "rgba(26, 22, 17, 0.36)",
       tickStrong: "rgba(26, 22, 17, 0.62)",
       ring: "rgba(26, 22, 17, 0.5)",
@@ -61,12 +61,12 @@
     },
     night: {
       palette: [
-        "#E0704D", "#E2D2B4", "#41706A", "#E0AC58",
-        "#4A5B82", "#D8A49C", "#7E8F49", "#C9C1AE",
-        "#7A4C6C", "#AFC5B7", "#D97A5B", "#D6BA86"
+        "#F28C54", "#A6D9D2", "#EEC967", "#9DB7E5",
+        "#E9AAB0", "#89C4A6", "#F2B877", "#B7CCED",
+        "#D7B4DF", "#C3DB98", "#E99B82", "#B4D8DB"
       ],
-      ink: "#15120E",
-      paper: "#F2E9D8",
+      ink: "#172C4B",
+      paper: "#FFFFFF",
       tick: "rgba(242, 233, 216, 0.3)",
       tickStrong: "rgba(242, 233, 216, 0.55)",
       ring: "rgba(242, 233, 216, 0.4)",

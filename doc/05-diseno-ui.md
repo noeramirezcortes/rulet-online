@@ -16,8 +16,8 @@ Cuatro ideas lo gobiernan:
 - **Legibilidad primero.** El veredicto es la única superficie opaca (con un tinte suave del color
   ganador) para que el texto se lea siempre, aunque la aurora esté detrás.
 
-La misma hoja `styles.css` se usa en español (`/`) y en inglés (`/en/`); `en/index.html` la referencia
-como `../styles.css`. El diseño es idéntico en ambos idiomas salvo los textos.
+La misma hoja `styles.css` se usa en español (`/es/`), en inglés (`/en/`), en la portada y en la 404;
+las páginas de idioma la referencian como `../styles.css`. El diseño es idéntico en ambos idiomas salvo los textos.
 
 ## 2. Temas y tokens
 
@@ -26,7 +26,7 @@ Dos temas comparten estructura y componentes:
 - **Noche** (`[data-theme="night"]`): fondo `#07060f`, texto `#f4f2ff`, acento `#8b7bff`.
 - **Día** (`:root`): fondo `#f1efff`, texto `#15122e`, acento `#5b4bff`.
 
-El atributo `data-theme="day|night"` vive en `<html>`. Un script inline en el `<head>` lo fija antes
+El atributo `data-theme="day|night"` vive en `<html>`. `theme.js`, un script síncrono del `<head>`, lo fija antes
 de pintar para evitar el destello del tema equivocado, y sincroniza el `theme-color`:
 
 1. Si `localStorage["ruleta-theme"]` es `day` o `night`, usa esa preferencia.
@@ -62,7 +62,7 @@ Sombras: `--card-shadow` (desplazamiento vertical y desenfoque) más un brillo i
 
 ### Colores de la ruleta
 
-Las porciones no usan tokens CSS: viven en `GEMS` dentro de `app.js` y `en/app.js`. Se dibujan sobre
+Las porciones no usan tokens CSS: viven en `GEMS` dentro de `app.js`. Se dibujan sobre
 un pozo oscuro, por lo que la paleta es **la misma de día y de noche** (`THEMES.day` y `THEMES.night`
 apuntan a ella):
 
@@ -161,6 +161,7 @@ body        fondo + puntos sutiles; ::before y ::after = capas de aurora (fixed,
 | Caption | `.caption`, `kbd` | Pista de teclado; en táctil «Toca la ruleta para girar» |
 | Veredicto | `.slip`, `.slip__head`, `.result__value`, `.result__meta`, `.status` | Superficie opaca con borde degradado y estado en píldora |
 | Opciones | `.block`, `.add-form`, `.field-hint`, `.options`, `.option` | Filas con punto luminoso y botón `×`; error inline bajo el campo |
+| Portada y 404 | `.gate`, `.gate__card`, `.gate__title`, `.gate__langs`, `.gate__lang` | Tarjeta de vidrio centrada sobre la aurora con dos botones de idioma (degradado `--btn-grad`); se usa en `public/index.html` y `public/404.html` |
 | Acciones | `.panel__actions`, `.btn` | Barajar y reiniciar, con iconos SVG |
 | Historial | `.history` (`<ul>`), `.chip`, `.chip__dot` | Últimos 10 veredictos visibles |
 | Toast | `.toast` | Píldora de vidrio fija abajo, `role="status"` |
@@ -307,10 +308,10 @@ detrás; se verificaron con la aurora por defecto y con los metadatos más tenue
 
 1. Cambia los tokens de `:root` (día) y `[data-theme="night"]` (noche) en `styles.css`. La aurora
    se ajusta con `--aurora-a…d`.
-2. Cambia `GEMS` (y, si hace falta, `THEMES.day` / `THEMES.night`) en `app.js` **y** `en/app.js`.
+2. Cambia `GEMS` (y, si hace falta, `THEMES.day` / `THEMES.night`) en `app.js`.
 3. Mantén el contraste de las etiquetas del canvas; `labelColor` elige entre tinta y blanco, pero la
    paleta debe seguir dando al menos 4,5:1.
 4. Revisa los literales de color que no son tokens: el bisel cromado, el pozo `#0b0a1a`, el hub, el
    puntero y las bombillas (`#ffd36b`, `#7ee7ff`, `#ff9bd0`), además del `theme-color` del `<head>` y
-   del script inline.
-5. Comprueba día y noche en móvil (390px y 320px) y escritorio (1440px), en `/` y en `/en/`.
+   de `theme.js`.
+5. Comprueba día y noche en móvil (390px y 320px) y escritorio (1440px), en `/es/` y en `/en/` (y la portada `/`, que se ve un instante antes de redirigir).

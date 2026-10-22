@@ -1,26 +1,27 @@
 # 03 · Referencia de código
 
-Referencia de las piezas de la aplicación. **`app.js` (ES) y `en/app.js` (EN) comparten estructura,
-orden de funciones, nombres **y numeración de líneas**. Las diferencias de contenido son los textos
-de `COPY`, `plural` (`Intl.PluralRules("es")` / `("en")`), `STORAGE_KEY` y `DEFAULT_OPTIONS`. Los números
-de línea corresponden a `app.js` y `en/app.js`. Diseño vigente: **Aurora** (ver documento 05).
+Referencia de las piezas de la aplicación. Hay **un solo `public/app.js`** para los dos idiomas: los
+textos, las opciones iniciales y la clave de almacenamiento de cada uno están en `LANGS`, y el idioma
+se elige con `<html lang>`. Los números de línea corresponden a `public/app.js`. Diseño vigente:
+**Aurora** (ver documento 05).
 
 ## 1. Constantes
 
-| Constante | Línea | Valor (ES / EN) | Uso |
+| Constante | Línea | Valor | Uso |
 | --- | ---: | --- | --- |
 | `TAU` | 8 | `Math.PI * 2` | Ángulo completo; porciones y normalización |
-| `STORAGE_KEY` | 9 | `"ruleta-de-la-suerte:v1"` / `"spin-the-wheel:v1"` | Clave de opciones, historial y sonido |
-| `THEME_KEY` | 10 | `"ruleta-theme"` | Clave del tema (compartida por ambos idiomas) |
+| `THEME_KEY` | 9 | `"ruleta-theme"` | Clave del tema (compartida por ambos idiomas) |
+| `LANG_KEY` | 10 | `"wheel-lang"` | Idioma elegido con el botón `EN`/`ES`; la portada `/` la lee |
 | `MAX_OPTIONS` | 11 | `20` | Límite de opciones al añadir y al cargar |
-| `reducedQuery` | 12 | `matchMedia("(prefers-reduced-motion: reduce)")` | `MediaQueryList` del movimiento reducido |
-| `reduced` | 13 | `() => reducedQuery.matches` | Se consulta en cada uso, así que un cambio de preferencia se respeta |
-| `FONT` | 14 | `"Manrope", "Segoe UI", system-ui, sans-serif` | Tipografía del texto dentro del canvas |
-| `DEFAULT_OPTIONS` | 16–19 | ES: `Pizza, Sushi, Hamburguesa, Tacos, Ensalada, Pasta, Ramen, Helado` · EN: `Pizza, Sushi, Burger, Tacos, Salad, Pasta, Ramen, Ice cream` | Lista inicial y destino de «Reiniciar» |
-| `plural` | 23 | `new Intl.PluralRules("es" \| "en")` | Pluralización de «N opción/opciones» |
-| `COPY` | 25–45 | Objeto de textos ES / EN | Toda la copia que JS escribe en la interfaz |
-| `GEMS` | 50–54 | 12 colores | Paleta de las porciones (la misma de día y de noche) |
-| `THEMES` | 56–59 | `day` y `night` | `palette` (= `GEMS`), `ink`, `paper` y `sep` por tema |
+| `HEX` | 12 | `/^#[0-9a-f]{3,8}$/i` | Valida los colores del historial guardado |
+| `reducedQuery` | 13 | `matchMedia("(prefers-reduced-motion: reduce)")` | `MediaQueryList` del movimiento reducido |
+| `reduced` | 14 | `() => reducedQuery.matches` | Se consulta en cada uso, así que un cambio de preferencia se respeta |
+| `FONT` | 15 | `"Manrope", "Segoe UI", system-ui, sans-serif` | Tipografía del texto dentro del canvas |
+| `LANGS` | 20–83 | `{ es, en }`, cada uno con `storageKey`, `defaults` y `copy` | Todo lo propio de cada idioma. `storageKey`: `ruleta-de-la-suerte:v1` / `spin-the-wheel:v1`. `defaults`: ES `Pizza, Sushi, Hamburguesa, Tacos, Ensalada, Pasta, Ramen, Helado` · EN `Pizza, Sushi, Burger, Tacos, Salad, Pasta, Ramen, Ice cream`. `copy` incluye su `Intl.PluralRules` |
+| `LANG` | 85–87 | `"es"` o `"en"` | Primeros dos caracteres de `<html lang>`; si no existe en `LANGS`, `"es"` |
+| `STORAGE_KEY`, `DEFAULT_OPTIONS`, `COPY` | 88 | Desestructurados de `LANGS[LANG]` | Clave de opciones/historial/sonido, lista inicial (destino de «Reiniciar») y textos que JS escribe en la interfaz |
+| `GEMS` | 93–97 | 12 colores | Paleta de las porciones (la misma de día y de noche) |
+| `THEMES` | 99–102 | `day` y `night` | `palette` (= `GEMS`), `ink`, `paper` y `sep` por tema |
 
 ### Paleta del canvas
 
@@ -31,7 +32,7 @@ de línea corresponden a `app.js` y `en/app.js`. Diseño vigente: **Aurora** (ve
 
 La ruleta se dibuja sobre un pozo oscuro, así que `THEMES.day` y `THEMES.night` comparten la paleta
 `GEMS`. Cada tema define además `ink` (`#0B0A1A`), `paper` (`#FFFFFF`) y `sep`, el color de los
-separadores. Las paletas no están en CSS: cambiarlas obliga a tocar ambos `app.js`.
+separadores. Las paletas no están en CSS: se cambian en `app.js`.
 
 ## 2. Funciones
 
@@ -39,16 +40,16 @@ separadores. Las paletas no están en CSS: cambiarlas obliga a tocar ambos `app.
 
 | Función | Línea | Firma | Qué hace |
 | --- | ---: | --- | --- |
-| `normalize` | 108 | `(angle) => number` | Lleva un ángulo a `[0, 2π)` |
-| `currentTheme` | 110 | `() => "day" \| "night"` | Lee `document.documentElement.dataset.theme` |
-| `palette` | 114 | `() => object` | Devuelve `THEMES[theme]` con caída a `day` |
-| `luminance` | 118 | `(hex) => number` | Luminancia relativa sRGB |
-| `contrast` | 127 | `(a, b) => number` | Ratio de contraste WCAG entre dos hex |
-| `labelColor` | 134 | `(hex, theme) => string` | Elige tinta o blanco, el que más contraste dé sobre la porción |
-| `setWin` | 139 | `(color \| null) => void` | Fija o elimina `--win` en `#resultCard` y `#wheel` (halo, bisel y borde del veredicto) |
-| `toast` | 146 | `(message) => void` | Muestra el toast 2,8 s; reinicia el temporizador si ya había uno |
-| `colorsFor` | 153 | `(n) => string[]` | Devuelve `n` colores ciclando la paleta; evita que el último repita el primero |
-| `getIndexAtPointer` | 166 | `(rot) => number` | Índice de la porción bajo el puntero para una rotación dada |
+| `normalize` | 151 | `(angle) => number` | Lleva un ángulo a `[0, 2π)` |
+| `currentTheme` | 153 | `() => "day" \| "night"` | Lee `document.documentElement.dataset.theme` |
+| `palette` | 157 | `() => object` | Devuelve `THEMES[theme]` con caída a `day` |
+| `luminance` | 161 | `(hex) => number` | Luminancia relativa sRGB |
+| `contrast` | 170 | `(a, b) => number` | Ratio de contraste WCAG entre dos hex |
+| `labelColor` | 177 | `(hex, theme) => string` | Elige tinta o blanco, el que más contraste dé sobre la porción |
+| `setWin` | 182 | `(color \| null) => void` | Fija o elimina `--win` en `#resultCard` y `#wheel` (halo, bisel y borde del veredicto) |
+| `toast` | 189 | `(message) => void` | Muestra el toast 2,8 s; reinicia el temporizador si ya había uno |
+| `colorsFor` | 196 | `(n) => string[]` | Devuelve `n` colores ciclando la paleta; evita que el último repita el primero |
+| `getIndexAtPointer` | 209 | `(rot) => number` | Índice de la porción bajo el puntero para una rotación dada |
 
 `colorsFor(n)` asigna `palette[i % 12]`. Si `n > 1` y el último color coincide con el primero, busca
 un color alternativo que no sea ni el primero ni el penúltimo.
@@ -57,15 +58,15 @@ un color alternativo que no sea ni el primero ni el penúltimo.
 
 | Función | Línea | Qué hace |
 | --- | ---: | --- |
-| `loadState` | 176 | Lee y sanea el JSON de la clave del idioma. Devuelve `true` si encontró datos, `false` si no o si falló |
-| `saveState` | 209 | Serializa `{ options, history, muted }`; ignora errores de cuota/permiso |
+| `loadState` | 219 | Lee y sanea el JSON de la clave del idioma. Devuelve `true` si encontró datos, `false` si no o si falló |
+| `saveState` | 252 | Serializa `{ options, history, muted }`; ignora errores de cuota/permiso |
 
 Saneado al cargar:
 
 | Campo | Regla |
 | --- | --- |
 | `options` | Debe ser array; descarta no-strings y vacíos; `trim`; recorta a 40 caracteres; máximo 20 |
-| `history` | Debe ser array; cada entrada necesita `label` string; máximo 12; el color se reasigna al de la opción actual si sigue existiendo |
+| `history` | Debe ser array; cada entrada necesita `label` string (recortada a 40); máximo 12; el color se reasigna al de la opción actual si sigue existiendo y, si no, solo se acepta `#rgb`/`#rrggbb` (si no, el primer color de la paleta) |
 | `muted` | `Boolean(data.muted)` |
 
 El historial antiguo conserva su color solo si la opción ya no existe; si existe, adopta el color de
@@ -76,11 +77,11 @@ valores por defecto (la app no avisa al usuario).
 
 | Función | Línea | Qué hace |
 | --- | ---: | --- |
-| `syncThemeUI` | 219 | Actualiza `aria-pressed` (verdadero = noche), `aria-label`, `title` y el `theme-color` del `<head>` |
-| `setTheme` | 229 | Fija `data-theme`, sincroniza la UI, guarda si se pide y redibuja opciones, historial y canvas |
-| `toggleTheme` | 244 | Alterna día/noche y persiste la elección |
+| `syncThemeUI` | 262 | Actualiza `aria-pressed` (verdadero = noche), `aria-label`, `title` y el `theme-color` del `<head>` |
+| `setTheme` | 272 | Fija `data-theme`, sincroniza la UI, guarda si se pide y redibuja opciones, historial y canvas |
+| `toggleTheme` | 287 | Alterna día/noche y persiste la elección |
 
-La primera visita la resuelve el script inline del `<head>`: lee `ruleta-theme`; si no hay valor,
+La primera visita la resuelve `theme.js`, cargado de forma síncrona en el `<head>`: lee `ruleta-theme`; si no hay valor,
 sigue `prefers-color-scheme`. Un listener de `matchMedia("(prefers-color-scheme: dark)")` cambia el
 tema en caliente **solo** mientras no haya una preferencia guardada.
 
@@ -88,20 +89,20 @@ tema en caliente **solo** mientras no haya una preferencia guardada.
 
 | Función | Línea | Qué hace | Textos |
 | --- | ---: | --- | --- |
-| `getAudio` | 250 | Devuelve el `AudioContext` (lo crea y reanuda si hace falta) o `null` si está silenciado o no hay soporte | — |
-| `playTick` | 265 | Tick cuadrado de 60 ms; frecuencia `740 + progress * 560` Hz; pico de ganancia 0,026 | — |
-| `playFanfare` | 281 | Arpegio C5–E5–G5–C6 con ondas triangulares, 85 ms entre notas, 520 ms cada una | — |
-| `updateSoundUI` | 300 | Sincroniza `aria-pressed` (verdadero = silenciado), `aria-label`, `title` e iconos vía CSS | Sí (desde `COPY`) |
+| `getAudio` | 293 | Devuelve el `AudioContext` (lo crea y reanuda si hace falta) o `null` si está silenciado o no hay soporte | — |
+| `playTick` | 308 | Tick cuadrado de 60 ms; frecuencia `740 + progress * 560` Hz; pico de ganancia 0,026 | — |
+| `playFanfare` | 324 | Arpegio C5–E5–G5–C6 con ondas triangulares, 85 ms entre notas, 520 ms cada una | — |
+| `updateSoundUI` | 343 | Sincroniza `aria-pressed` (verdadero = silenciado), `aria-label`, `title` e iconos vía CSS | Sí (desde `COPY`) |
 
 ### Dibujo
 
 | Función | Línea | Qué hace |
 | --- | ---: | --- |
-| `fitLabel` | 309 | Recorta el texto y añade `…` si supera `maxWidth` |
-| `shade` | 319 | `(hex, t) => string`: aclara (`t > 0`) u oscurece (`t < 0`) un color; devuelve `rgb(...)` |
-| `draw` | 330 | Dibuja la ruleta completa; no hace nada si `wheelSize === 0` |
-| `resizeWheel` | 430 | Ajusta tamaño y DPR del canvas de la ruleta y redibuja |
-| `buildBulbs` | 448 | Crea las 24 bombillas `<i>` del bisel dentro de `#bulbs` (posición en %, retardo `--i`) |
+| `fitLabel` | 352 | Recorta el texto y añade `…` si supera `maxWidth` |
+| `shade` | 362 | `(hex, t) => string`: aclara (`t > 0`) u oscurece (`t < 0`) un color; devuelve `rgb(...)` |
+| `draw` | 373 | Dibuja la ruleta completa; no hace nada si `wheelSize === 0` |
+| `resizeWheel` | 473 | Ajusta tamaño y DPR del canvas de la ruleta y redibuja |
+| `buildBulbs` | 491 | Crea las 24 bombillas `<i>` del bisel dentro de `#bulbs` (posición en %, retardo `--i`) |
 
 `draw()` usa `R = wheelSize / 2 - 4`. Orden de dibujo: porciones con degradado radial
 (`shade(color, -0.42)` → color → `shade(color, +0.16)`), separadores de `theme.sep`, etiquetas, brillo
@@ -116,9 +117,9 @@ elementos CSS (documento 05, §4).
 
 | Función | Línea | Qué hace |
 | --- | ---: | --- |
-| `resizeFx` | 464 | Ajusta el canvas de confeti al viewport con DPR máximo 2 |
-| `burstConfetti` | 470 | Crea 100 flecos (60 si el ancho < 640 px) desde el centro de la ruleta, con los colores de la paleta y blanco; no hace nada con movimiento reducido |
-| `stepConfetti` | 502 | Bucle de física y dibujo; se detiene solo al vaciar `particles` |
+| `resizeFx` | 507 | Ajusta el canvas de confeti al viewport con DPR máximo 2 |
+| `burstConfetti` | 513 | Crea 100 flecos (60 si el ancho < 640 px) desde el centro de la ruleta, con los colores de la paleta y blanco; no hace nada con movimiento reducido |
+| `stepConfetti` | 545 | Bucle de física y dibujo; se detiene solo al vaciar `particles` |
 
 Cada partícula: `x, y, vx, vy, w, h, rot, vr, color, life, decay, flip`. Gravedad `+0.24`,
 rozamiento `0.994` horizontal / `0.996` vertical, vida inicial `1` y decaimiento `0.006–0.013`. Se
@@ -128,21 +129,21 @@ dibujan como rectángulos que giran y se escoran con `scale(1, |cos(flip)|)`.
 
 | Función | Línea | Qué hace | Textos |
 | --- | ---: | --- | --- |
-| `finishSpin` | 542 | Fija resultado, color (`setWin`) y estado; anuncia «Resuelto: X» en `#resultLive`; anima la entrada con `animate()`; añade al historial; guarda; suena; lanza confeti; asegura visibilidad | Sí |
-| `spin` | 585 | Valida, bloquea controles, sortea ganador, calcula animación y ejecuta el bucle `requestAnimationFrame` | Sí |
+| `finishSpin` | 585 | Fija resultado, color (`setWin`) y estado; anuncia «Resuelto: X» en `#resultLive`; anima la entrada con `animate()`; añade al historial; guarda; suena; lanza confeti; asegura visibilidad | Sí |
+| `spin` | 628 | Valida, bloquea controles, sortea ganador, calcula animación y ejecuta el bucle `requestAnimationFrame` | Sí |
 
 ### Interfaz
 
 | Función | Línea | Qué hace | Textos |
 | --- | ---: | --- | --- |
-| `syncControls` | 649 | Actualiza controles según `spinning` y `options.length`: el hub usa `aria-disabled` durante el giro (y `disabled` solo con menos de 2 opciones), el campo pasa a `readOnly`; actualiza el subtítulo del hub | Sí |
-| `renderOptions` | 664 | Reconstruye la lista, contador, vacío, `aria-label` del canvas; llama a `draw()` y `syncControls()` | Sí |
-| `renderHistory` | 703 | Pinta hasta 10 chips (`<li>`) y alterna el mensaje vacío | — |
-| `showHint` | 725 | Escribe el mensaje bajo el campo (`#optionHint`) y marca `aria-invalid` si es un error | — |
-| `addOption` | 732 | Normaliza espacios, valida (vacío y límite de 20 se avisan en línea con `showHint`), limita a 40 caracteres, limpia el input, renderiza y guarda | Sí |
-| `removeOption` | 754 | Elimina por índice, renderiza, guarda y devuelve el foco al botón `×` vecino (o al campo) | — |
-| `shuffleOptions` | 766 | Fisher–Yates, renderiza, guarda y avisa con toast | Sí |
-| `resetAll` | 777 | Confirma, restaura opciones por defecto, borra historial, resultado, color y aviso del campo, guarda y avisa | Sí |
+| `syncControls` | 692 | Actualiza controles según `spinning` y `options.length`: el hub usa `aria-disabled` durante el giro (y `disabled` solo con menos de 2 opciones), el campo pasa a `readOnly`; actualiza el subtítulo del hub | Sí |
+| `renderOptions` | 707 | Reconstruye la lista, contador, vacío, `aria-label` del canvas; llama a `draw()` y `syncControls()` | Sí |
+| `renderHistory` | 746 | Pinta hasta 10 chips (`<li>`) y alterna el mensaje vacío | — |
+| `showHint` | 768 | Escribe el mensaje bajo el campo (`#optionHint`) y marca `aria-invalid` si es un error | — |
+| `addOption` | 775 | Normaliza espacios, valida (vacío y límite de 20 se avisan en línea con `showHint`), limita a 40 caracteres, limpia el input, renderiza y guarda | Sí |
+| `removeOption` | 797 | Elimina por índice, renderiza, guarda y devuelve el foco al botón `×` vecino (o al campo) | — |
+| `shuffleOptions` | 809 | Fisher–Yates, renderiza, guarda y avisa con toast | Sí |
+| `resetAll` | 820 | Confirma, restaura opciones por defecto, borra historial, resultado, color y aviso del campo, guarda y avisa | Sí |
 
 Notas de comportamiento:
 
@@ -156,7 +157,7 @@ Notas de comportamiento:
 
 ## 3. Mapa de elementos del DOM
 
-`const els = { … }` (líneas 63–88) cachea estos IDs, **iguales en `index.html` y `en/index.html`**:
+`const els = { … }` (líneas 106–131) cachea estos IDs, **iguales en `es/index.html` y `en/index.html`**:
 
 | Clave JS | ID en HTML | Etiqueta / función |
 | --- | --- | --- |
@@ -201,7 +202,7 @@ Notas de comportamiento:
 | `.result__value.is-win` | `finishSpin` | `text-shadow` del color ganador |
 | `.field-hint.is-error`, `input[aria-invalid]` | `showHint` | Error en línea bajo el campo |
 | `.toast.is-visible` | `toast` | Opacidad y desplazamiento |
-| `html[data-theme]` | script inline / `setTheme` | Tokens de día o noche |
+| `html[data-theme]` | `theme.js` / `setTheme` | Tokens de día o noche |
 | `#soundBtn[aria-pressed]` | `updateSoundUI` | Icono on/off |
 | `#themeBtn[aria-pressed]` | `syncThemeUI` | Icono sol/luna |
 | `--c` | `renderOptions` / `renderHistory` | Color del punto |
@@ -223,7 +224,7 @@ Clases estáticas que JS no toca: `.masthead`, `.masthead__actions`, `.lang-link
 | `resize` | Redimensiona ruleta y confeti |
 | `ResizeObserver` | Solo si el navegador lo soporta; observa el canvas |
 | `matchMedia(...).change` | Sigue el tema del sistema solo si no hay preferencia guardada |
-| Clic en `.lang-link` | Navegación normal del navegador a la otra página (sin listener) |
+| Clic en `.lang-link` | Guarda su `hreflang` en `wheel-lang` y deja que el navegador navegue a la otra página (sin `preventDefault`) |
 
 Los botones de eliminar se recrean en cada `renderOptions`, por lo que sus listeners se añaden de
 nuevo a cada render (no se acumulan porque los nodos anteriores se descartan).
@@ -278,20 +279,20 @@ Al acabar se hace `rotation = normalize(startRotation + delta)`, se redibuja y s
 
 ## 7. Puntos de extensión
 
-> **Importante:** salvo `styles.css`, los cambios de lógica deben replicarse en `app.js` **y**
-> `en/app.js`. Los textos viven en `COPY` y en los dos HTML.
+> **Importante:** la lógica (`app.js`) y el CSS son únicos. Los textos viven en `LANGS` y en los HTML
+> de cada idioma (`public/es/index.html`, `public/en/index.html`).
 
 | Quiero cambiar… | Tocar |
 | --- | --- |
-| Opciones iniciales | `DEFAULT_OPTIONS` en ambos JS |
-| Colores de porciones | `GEMS` (y `THEMES`) en ambos JS |
-| Límite de opciones | `MAX_OPTIONS` en ambos JS; el contador se ajusta solo |
-| Longitud máxima de una opción | `maxlength` en ambos HTML y los dos `slice(0, 40)` de cada JS |
-| Claves de almacenamiento | `STORAGE_KEY` (por idioma) y `THEME_KEY` (compartida) |
-| Velocidad del giro | `duration` y `turns` en `spin` de ambos JS |
+| Opciones iniciales | `defaults` de cada idioma en `LANGS` |
+| Colores de porciones | `GEMS` (y `THEMES`) |
+| Límite de opciones | `MAX_OPTIONS`; el contador se ajusta solo |
+| Longitud máxima de una opción | `maxlength` en ambos HTML y los `slice(0, 40)` de `app.js` |
+| Claves de almacenamiento | `storageKey` (por idioma, en `LANGS`) y `THEME_KEY` / `LANG_KEY` (compartidas) |
+| Velocidad del giro | `duration` y `turns` en `spin` |
 | Sonidos | `playTick` / `playFanfare` |
-| Textos de la interfaz | `COPY` en ambos JS |
+| Textos de la interfaz | `copy` de cada idioma en `LANGS` y los HTML |
 | Colores y tipografía de la página | Tokens `:root` y `[data-theme="night"]` de `styles.css` |
-| Enlace de idioma | `.lang-link` en cada HTML |
+| Enlace de idioma | `.lang-link` en cada HTML (relativo: `../en/`, `../es/`) |
 | Puntos de ruptura | Media queries `1020px` y `640px` de `styles.css` |
-| Textos y SEO | `index.html` y `en/index.html` (title, meta description, OG, hero) |
+| Textos y SEO | `public/es/index.html`, `public/en/index.html` (title, meta description, OG, `canonical`, `hreflang`, hero) y `public/sitemap.xml` |

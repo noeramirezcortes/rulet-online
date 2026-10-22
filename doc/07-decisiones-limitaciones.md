@@ -5,16 +5,20 @@
 | Decisión | Motivo | Coste / alternativa descartada |
 | --- | --- | --- |
 | **Vanilla JS, sin framework** | Cero dependencias, cero build, despliegue inmediato y carga mínima | Estado y DOM manuales; sin reactividad ni componentes |
-| **Un único `app.js` por idioma, en IIFE** | Evita globals, permite `file://` y mantiene todo localizable | Lógica duplicada; no hay exports ni tests unitarios directos |
-| **Dos HTML independientes (ES/EN)** | Metadatos, `lang` y textos correctos sin runtime i18n | Duplicación de estructura y riesgo de que las versiones se desincronicen |
+| **Un único `app.js` para ambos idiomas, en IIFE** | Evita globals y duplicación de lógica; los textos de cada idioma están en `LANGS` y se eligen con `<html lang>` | Se descargan los textos de los dos idiomas (~1 KB); no hay exports ni tests unitarios directos |
+| **Dos HTML independientes (`/es/`, `/en/`)** | Metadatos, `lang` y textos correctos sin runtime i18n | Duplicación de estructura y riesgo de que las versiones se desincronicen |
+| **Un solo dominio con una carpeta por idioma** | Los enlaces entre idiomas son relativos y funcionan igual en local y en producción; el SEO se concentra en un dominio; añadir un idioma es añadir una carpeta | Hay que dejar el subdominio inglés antiguo como redirección 301 y los usuarios de ese origen pierden sus opciones guardadas |
+| **Servir solo `public/`** | `doc/`, `PRODUCT.md`, `DESIGN.md` y `.impeccable/` ya no son accesibles desde internet | El directorio de salida de Cloudflare Pages debe ser `public` |
+| **CSP estricta sin scripts ni estilos en línea** | `default-src 'none'` bloquea cualquier inyección; la app no necesita nada externo | Todo script o estilo nuevo debe ir en un archivo propio; añadir terceros exige ampliar la política |
 | **CSS único compartido** | Un solo sistema visual para ambos idiomas y ambos temas; menos peso y mantenimiento | Los estilos no pueden variar por idioma sin selectores extra |
 | **Temas día y noche con preferencia guardada** | La página se adapta al sistema en la primera visita y recuerda la elección manual | Dos paletas que mantener y verificar; el tema se comparte entre idiomas |
-| **Script mínimo en el `<head>`** | Fija `data-theme` antes del primer pintado y evita el destello de tema incorrecto | Un script inline más que autorizar en una CSP estricta |
-| **Una paleta de gemas para ambos temas** | La ruleta se dibuja sobre un pozo oscuro, así que doce colores sirven de día y de noche; cada porción lleva degradado radial | Los colores viven en `GEMS` y hay que ajustarlos a mano en ambos JS |
+| **`theme.js` síncrono en el `<head>`** | Fija `data-theme` antes del primer pintado y evita el destello de tema incorrecto; al ser un archivo, no obliga a `unsafe-inline` ni a un *hash* en la CSP | Una petición más que bloquea el primer pintado (muy pequeña y cacheada) |
+| **Una paleta de gemas para ambos temas** | La ruleta se dibuja sobre un pozo oscuro, así que doce colores sirven de día y de noche; cada porción lleva degradado radial | Los colores viven en `GEMS` y hay que ajustarlos a mano en `app.js` |
 | **Etiquetas del canvas con contraste calculado** | `labelColor` elige tinta o blanco según el contraste real de cada porción | Más código de dibujo; el resultado debe revisarse al cambiar la paleta |
 | **Fuentes autoalojadas** | Unbounded y Manrope dan carácter sin CDN ni peticiones a terceros | Cuatro woff2 en el repositorio y `@font-face` que mantener |
 | **Claves de almacenamiento separadas** | Cada idioma conserva su lista sin mezclar idiomas | Cambiar de idioma no traslada opciones; el usuario puede percibirlo como pérdida |
-| **Enlace de idioma estático** | Sin JavaScript, sin parpadeo, indexable y accesible | Recarga completa; no conserva el estado de la ruleta |
+| **Enlace de idioma estático** | Sin JavaScript, sin parpadeo, indexable y accesible; la elección se recuerda con un `localStorage` mínimo (`wheel-lang`) | Recarga completa; no conserva el estado de la ruleta |
+| **Portada `/` que redirige con JavaScript** | Funciona en un host estático sin reglas de servidor; sin JavaScript se ven los dos enlaces de idioma | Un breve parpadeo; los rastreadores ven la portada, no una redirección (por eso es el `x-default`) |
 | **Canvas 2D para la ruleta** | Sectores exactos, rotación barata y un solo elemento que redibujar | Texto menos accesible que HTML; etiquetas dibujadas a mano |
 | **`localStorage`** | Persistencia clave-valor suficiente para < 2 KB por idioma | Sin consultas, sin sincronización, sin transacciones |
 | **Web Audio sintetizado** | Sin archivos, sin licencias, sin peticiones; sonido inmediato | Tono sintético; requiere gesto del usuario |
@@ -37,33 +41,33 @@
    guarde gana y las demás muestran datos obsoletos hasta recargar. El tema tampoco se propaga en
    caliente entre pestañas.
 5. **Sin sincronización entre idiomas.** Cada versión guarda opciones, historial y silencio en su
-   propia clave; cambiar de idioma no traslada nada. El tema sí es compartido.
+   propia clave; cambiar de idioma no traslada nada. El tema y el idioma elegido sí son compartidos.
 6. **El resultado no se restaura al recargar.** Opciones, historial, silencio y tema sí; la tarjeta
    vuelve a `—`.
 7. **Historial de solo 10 visibles** aunque se guarden 12, sin marcas de tiempo ni botón de vaciado.
 8. **Duplicados permitidos.** Añadir «Pizza» dos veces crea dos porciones indistinguibles.
 9. **Restablecer conserva el silencio y el tema.** Puede sorprender si se espera un reset total.
-10. **El límite de 40 caracteres se aplica en tres sitios por idioma** (HTML y dos en JS); si se cambia
-    uno solo, el comportamiento es inconsistente.
-11. **La preferencia de movimiento reducido se lee una vez.** Cambiarla requiere recargar; el tema, en
-    cambio, sí reacciona al sistema si no hay elección guardada.
-12. **Solo dos idiomas.** No hay detección automática del navegador ni redirección.
-13. **La fecha de la edición se escribe con JS.** Sin JavaScript queda el texto estático «Edición de
-    hoy» / «Today's edition».
+10. **El límite de 40 caracteres se aplica en varios sitios** (el `maxlength` de cada HTML y los
+    `slice(0, 40)` de `app.js`); si se cambia uno solo, el comportamiento es inconsistente.
+11. **El idioma del navegador solo se consulta en la portada.** Quien llega directo a `/es/` o a
+    `/en/` (un enlace compartido) ve ese idioma, sin sugerencia de cambio.
+12. **Solo dos idiomas.** El enlace `EN`/`ES` conmuta entre dos; con un tercero habría que
+    convertirlo en un selector.
+13. **El enlace de idioma no conserva el estado de la ruleta ni la ruta.** Siempre lleva a la página
+    principal del otro idioma.
 
 ### Técnicas
 
-14. **Lógica duplicada.** `app.js` y `en/app.js` son copias con textos distintos. Un arreglo en uno no
-    llega al otro; ya hay pequeñas diferencias de comentarios.
+14. **HTML duplicado.** `es/index.html` y `en/index.html` son copias con textos distintos; un cambio
+    estructural hay que hacerlo en ambos (la lógica y el CSS ya son únicos).
 15. **Acoplamiento fuerte al DOM por ID.** Un ID renombrado provoca un `TypeError` al arrancar y deja
     la página sin funcionalidad (no hay manejo de errores de inicialización).
 16. **Sin tests automatizados ni linting.** Las regresiones se detectan a mano, y ahora hay que probar
     dos versiones, dos temas y varios anchos.
 17. **`localStorage` falla en silencio.** Si está bloqueado, el usuario no sabe que no se guardará nada;
     el tema se resuelve siguiendo el sistema en cada carga.
-18. **Historial sin validar longitud ni formato de color al cargar.** Se comprueba que `label` y
-    `color` sean strings, pero una etiqueta de miles de caracteres o un color inválido pueden romper
-    el diseño (no ejecutan código).
+18. ~~**Historial sin validar al cargar**~~ — hecho: `loadState` recorta las etiquetas a 40 caracteres
+    y solo acepta colores `#rgb`/`#rrggbb`.
 19. **`color-mix()` y `backdrop-filter`** requieren navegadores recientes. Sin `color-mix()` se pierden
     el halo de la rueda, el tinte del veredicto y el resplandor del texto ganador; sin `backdrop-filter`
     los paneles de vidrio no desenfocan la aurora.
@@ -79,9 +83,10 @@
 25. **Sin `og:image`** pese a existir `preview.png`; al compartir no se muestra miniatura.
 26. **Sin service worker.** No hay instalación como PWA ni garantía de funcionamiento offline tras
     limpiar caché.
-27. **`hreflang` incompleto para producción.** Son rutas relativas (`index.html`, `en/index.html`), no
-    URLs absolutas, y no hay `x-default` ni `canonical`. Los buscadores pueden ignorarlas o resolverlas
-    de forma ambigua.
+27. **El dominio está repetido en varios archivos.** `https://ruleta.yadale.click` aparece en los
+    `canonical`, `hreflang` y `og:url` de las tres páginas, en `sitemap.xml` y en `robots.txt`; cambiar
+    de dominio exige reemplazarlo en todos (no hay plantilla ni build que lo centralice).
+    Las URLs absolutas son obligatorias para SEO, así que se aceptan.
 28. **Fuentes locales, no un CDN.** Son ~190 KB en total; la primera visita descarga las dos latinas
     precargadas (~71 KB) y el resto solo si aparece texto que las necesite.
 
@@ -89,22 +94,25 @@
 
 | Tema | Estado |
 | --- | --- |
-| XSS por etiquetas | **Mitigado**: se usa `textContent`, nunca `innerHTML`, para datos del usuario |
+| XSS por etiquetas | **Mitigado**: se usa `textContent` para datos del usuario; el único `innerHTML` inserta un SVG fijo. Además, la CSP bloquea scripts en línea |
 | Inyección en atributos | Etiquetas usadas en `title` y `aria-label` mediante APIs del DOM; sin concatenación HTML |
 | Datos remotos | No existen; no hay `fetch` ni terceros |
 | Privacidad | Todo queda en `localStorage`; no hay analítica ni envío de datos |
 | `Math.random` | No criptográfico; aceptable para ocio, no para apuestas |
-| Manipulación de `localStorage` | El usuario puede editar los datos; se renderizan como texto, pero no se validan longitudes del historial |
+| Manipulación de `localStorage` | El usuario puede editar los datos; se renderizan como texto y `loadState` valida longitudes, tipos y colores |
 | Dependencias | Ninguna; superficie de suministro nula |
-| CSP | Compatible con `default-src 'self'`; el favicon requiere `img-src data:` y el script de tema un *hash* o `'unsafe-inline'` |
+| CSP y cabeceras | **Activas** en `public/_headers`: `default-src 'none'`, scripts y estilos solo `'self'`, `frame-ancestors 'none'`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, COOP/CORP y HSTS (documento 06 §3) |
+| Archivos expuestos | Solo se publica `public/`; `doc/`, `PRODUCT.md`, `DESIGN.md` y `.impeccable/` quedan fuera |
+| Redirecciones | La portada redirige con `location.replace` a una ruta relativa fija (`es/` o `en/`) elegida entre dos valores; no usa parámetros de la URL, así que no hay redirección abierta |
 | Preferencia de tema | Se valida al leerla (`day`/`night`); cualquier otro valor cae al sistema |
 
 ## 4. Mejoras propuestas
 
 ### Prioridad alta
 
-1. **Eliminar la duplicación de lógica.** Extraer un módulo compartido (`wheel.js`, `state.js`,
-   `audio.js`) con un pequeño build, o al menos unificar mediante un objeto de textos (`i18n.js`).
+1. **Eliminar la duplicación del HTML.** Generar `es/index.html` y `en/index.html` desde una plantilla
+   y un archivo de textos con un pequeño script, lo que además centralizaría el dominio y los
+   `hreflang`. (La lógica ya es única: `LANGS` en `app.js`.)
 2. **Tests de humo automatizados** con Playwright para ambas páginas: cargar, añadir, girar, persistir,
    resetear, cambiar de idioma y alternar tema.
 3. **Sincronización entre pestañas** con `window.addEventListener("storage", …)` y recarga de estado,
@@ -113,10 +121,9 @@
    - Aumentar los botones `×` a ≥ 44 px o añadir área táctil.
    - Añadir `aria-live` al estado del giro o un `aria-describedby` con la pista.
    - Revisar el contraste del pie, placeholders y textos vacíos en ambos temas.
-5. **Validar el historial al cargar**: recortar etiquetas a 40 caracteres y aceptar solo colores
-   `#rgb`/`#rrggbb` (o caer a un color por defecto).
-6. **Completar SEO bilingüe**: `hreflang` absolutos, `x-default`, `canonical` y `og:image` con
-   `preview.png`.
+5. ~~**Validar el historial al cargar**~~ — hecho.
+6. **Completar SEO**: `og:image` de 1200×630 (hoy no hay) y datos estructurados opcionales. Ya están
+   hechos `hreflang` absolutos, `x-default`, `canonical`, `sitemap.xml` y `robots.txt`.
 
 ### Prioridad media
 
@@ -127,8 +134,8 @@
 10. **Advertir de duplicados** o ignorarlos opcionalmente.
 11. **Pesos/probabilidades** por opción y modo «sin repetición».
 12. **Varias listas** guardadas con nombre (IndexedDB o claves separadas).
-13. **Detección de idioma** con `navigator.language` y redirección opcional, respetando una elección
-    manual (cookie o `localStorage`).
+13. ~~**Detección de idioma**~~ — hecho en la portada `/` (`gate.js`): respeta la elección manual
+    (`wheel-lang`) y, si no hay, usa `navigator.languages`.
 14. **PWA** con service worker y manifiesto para uso offline instalado.
 15. ~~**Preferencia de movimiento reactiva**~~ — hecho: `reduced()` consulta el `MediaQueryList` en cada uso.
 16. **Tercer tema o acentos por estación** (por ejemplo, una variante sepia) reutilizando los tokens;
@@ -139,17 +146,17 @@
 17. Separar en módulos con un build ligero y migrar a TypeScript.
 18. Sustituir `confirm()` por un diálogo propio accesible.
 19. Adoptar un sistema i18n real (archivos de mensajes, plurales, formato) para añadir idiomas sin
-    duplicar JS.
+    tocar `LANGS` a mano.
 20. Añadir `manifest.webmanifest`, iconos y meta `apple-touch-icon`.
-21. Generar `en/app.js` desde `app.js` con un script versionado en el repositorio, en lugar de
-    mantener dos copias a mano.
+21. ~~Generar `en/app.js` desde `app.js`~~ — hecho de otra forma: `app.js` es único y toma los textos
+    de `LANGS`.
 
 ## 5. Cómo extender: cuatro recetas
 
 ### A. Botón «Vaciar historial» / «Clear history»
 
-1. Añadir el botón en cada `index.html` dentro de la tarjeta de historial.
-2. Cachearlo en `els` de ambos JS.
+1. Añadir el botón en `es/index.html` y `en/index.html` dentro de la tarjeta de historial.
+2. Cachearlo en `els` y añadir sus textos a `copy` en `LANGS`.
 3. Crear `clearHistory()`: `history = []`, `renderHistory()`, `saveState()`.
 4. Enganchar el listener en la sección de eventos y deshabilitarlo durante el giro en `syncControls`.
 5. Estilos: reutilizar `.btn` o `.icon-btn`.
@@ -173,21 +180,22 @@
 
 ### D. Añadir un tercer idioma
 
-1. Crear `xx/index.html` copiando uno existente y traduciendo textos/metadatos; ajustar `lang`,
-   `hreflang`, `og:locale` y los enlaces de idioma de **todas** las páginas.
-2. Crear `xx/app.js` con textos, `DEFAULT_OPTIONS` y una `STORAGE_KEY` propia. El tema se comparte:
-   usa la misma `THEME_KEY`.
-3. Añadir el enlace `.lang-switch` en las tres cabeceras.
-4. Verificar que `styles.css` y las fuentes se referencian correctamente (`../../styles.css` y
-   `../assets/fonts/` si hay dos niveles).
-5. Actualizar `hreflang` recíprocos y este documento.
-6. **Mejor:** extraer primero la lógica común para no triplicar el código.
+1. Crear `public/xx/index.html` copiando uno existente y traduciendo textos/metadatos; ajustar `lang`,
+   `canonical`, `og:url`, `og:locale` y añadir el `hreflang` nuevo en **todas** las páginas.
+2. Añadir la entrada `xx` en `LANGS` de `public/app.js` con `storageKey` propia, `defaults` y `copy`
+   (el tema y `wheel-lang` se comparten).
+3. Convertir el enlace `.lang-link` (que conmuta entre dos) en un selector con los tres idiomas.
+4. Añadir el idioma a `public/gate.js` (detección), a la portada `public/index.html` y a
+   `public/sitemap.xml`.
+5. Comprobar que los recursos se referencian como `../styles.css`, `../app.js` y `../assets/fonts/`.
+6. Actualizar este documento y el README.
+7. **Mejor:** generar los HTML desde una plantilla antes de pasar de dos idiomas.
 
 ## 6. Convenciones del código
 
 | Ámbito | Convención |
 | --- | --- |
-| Idioma de UI | Español en la raíz, inglés en `en/`; mismos IDs y estructura |
+| Idioma de UI | Español en `/es/`, inglés en `/en/`; mismos IDs y estructura |
 | Idioma de identificadores | Inglés (`options`, `renderHistory`, `wheelSize`) |
 | JS | Comillas dobles, punto y coma, 2 espacios, `camelCase` |
 | Funciones | Declaraciones para lógica principal; arrows para utilidades y callbacks |
@@ -198,30 +206,32 @@
 | Temas | El atributo `data-theme` vive en `<html>`; los colores del canvas salen de `THEMES` |
 | Comentarios | Solo cabeceras de sección y aclaraciones puntuales; el código es autoexplicativo |
 | Accesibilidad | `aria-label` en botones icónicos, `aria-hidden` en decoración, foco visible |
-| Paridad ES/EN | Todo cambio funcional se aplica a los dos JS; los textos, a los dos HTML |
+| Paridad ES/EN | La lógica es única (`app.js`); los textos van en `LANGS` y en los dos HTML, con las mismas claves |
 
 ## 7. Registro de verificación
 
 | Comprobación | Resultado |
 | --- | --- |
-| Las piezas de la app existen y las rutas relativas son correctas | ✅ HTML, CSS, JS y seis woff2 |
-| IDs usados por `els` existen en ambos HTML | ✅ (23/23 en cada uno) |
+| Las piezas de la app existen y las rutas son correctas | ✅ HTML, CSS, JS y cuatro woff2 en `public/` |
+| IDs usados por `els` existen en ambos HTML | ✅ |
 | No hay dependencias, imports ni peticiones de red | ✅ |
 | `localStorage` se lee al inicio y se escribe tras cada cambio | ✅ opciones, historial, silencio y tema |
-| Claves separadas por idioma y tema compartido | ✅ (`ruleta-de-la-suerte:v1`, `spin-the-wheel:v1`, `ruleta-theme`) |
-| Límites 20 opciones / 40 caracteres / 12 historial / 10 visibles | ✅ en ambos JS |
+| Claves separadas por idioma, tema e idioma compartidos | ✅ (`ruleta-de-la-suerte:v1`, `spin-the-wheel:v1`, `ruleta-theme`, `wheel-lang`) |
+| Límites 20 opciones / 40 caracteres / 12 historial / 10 visibles | ✅ |
 | Movimiento reducido aplicado en CSS y JS | ✅ |
 | Tema día/noche, conmutador y respeto a `prefers-color-scheme` | ✅ en ambos idiomas; sin destello inicial |
 | Contraste de las etiquetas del canvas | ✅ peor par 4,70:1 (`#E0338F`); la paleta es la misma en ambos temas |
-| Sintaxis de ambos JS | ✅ `node --check` |
-| Rutas HTTP `/`, `/en/`, `styles.css`, `en/app.js` y fuentes | ✅ 200 con un servidor local |
-| `hreflang` y `og:locale` en ambas páginas | ✅ (rutas relativas) |
-| Enlace de idioma recíproco | ✅ (`en/index.html` ↔ `../index.html`) |
+| Sintaxis de los JS | ✅ `node --check` |
+| Rutas HTTP `/`, `/es/`, `/en/`, recursos y fuentes; `doc/` y `_headers` no se sirven | ✅ 200 / 404 con un simulador local de Cloudflare Pages |
+| Cabeceras y CSP aplicadas; sin avisos de CSP en la consola; añadir, girar y cambiar de idioma funcionan | ✅ en Chrome contra el simulador |
+| `canonical`, `hreflang` (es, en, x-default) y `og:locale` en las tres páginas | ✅ (URLs absolutas) |
+| Enlace de idioma recíproco y portada con redirección | ✅ (`/es/` ↔ `/en/`; `/` sigue a `wheel-lang`) |
+| Despliegue real y regla 301 del subdominio inglés | ⏳ Pendiente de comprobar en producción (documento 06 §3) |
 | Revisión visual en Chrome | ✅ escritorio (≈1540×780) y móvil de 390 px; día, noche y resultado; ES y EN. Sin errores de consola. No se revisaron 820/320 px ni el estado vacío con el nuevo diseño |
 | Detector Impeccable | ⚠️ No se ha vuelto a ejecutar con el diseño Aurora |
 | Tests / lint / CI | ⚠️ Ausentes |
 | Documentación | `doc/` completa, enlazada desde el README; `DESIGN.md` y `PRODUCT.md` en la raíz |
 
-La verificación visual del diseño Aurora se hizo en Chrome con capturas manuales de `/` y `/en/`.
+La verificación visual del diseño Aurora se hizo en Chrome con capturas manuales de `/es/` y `/en/`.
 Antes de un cambio grande, repite el plan de pruebas del
 documento 06 en los dos idiomas.

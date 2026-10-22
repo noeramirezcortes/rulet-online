@@ -25,8 +25,8 @@ herraminetasweb/
 │  ├─ index.html       Documento inglés
 │  └─ app.js           Lógica inglesa (copia traducida)
 ├─ styles.css          Estilos compartidos por ambos idiomas
-├─ assets/fonts/       Bodoni Moda y Karla autoalojadas (6 woff2)
-├─ preview.png         Captura 1440×1312 usada en el README
+├─ assets/fonts/       Unbounded y Manrope autoalojadas (4 woff2)
+├─ preview.png         Captura 1440×1320 usada en el README
 ├─ README.md           Guía breve de uso y personalización
 ├─ PRODUCT.md          Verdad de producto
 ├─ DESIGN.md           Sistema visual y tokens
@@ -55,11 +55,12 @@ index.html (ES)                 en/index.html (EN)
 
 styles.css (compartido)
   ├─ :root (día) y [data-theme="night"] con tokens de diseño
-  ├─ @font-face de Bodoni Moda y Karla
+  ├─ @font-face de Unbounded y Manrope
+  ├─ aurora de fondo (body::before / ::after) y superficies de vidrio
   ├─ estados visuales dirigidos por clases/atributos que pone JS
-  │   (.is-spinning, .is-win, .is-pop, .is-visible, [data-state], [aria-pressed])
-  ├─ componentes de cabecera: .masthead__actions, .lang-link
-  └─ media queries (1020px, 640px, prefers-reduced-motion, forced-colors)
+  │   (.is-spinning, .is-win, .is-visible, [data-state], [aria-pressed], [aria-invalid])
+  ├─ componentes de cabecera: .masthead, .masthead__actions, .lang-link
+  └─ media queries (1020px, 760px, 640px, prefers-reduced-motion, forced-colors)
 
 app.js (ES)  ≈  en/app.js (EN)
   ├─ localiza elementos por ID (objeto `els`)
@@ -78,32 +79,33 @@ En cambio, cada JS lleva sus propios textos, opciones por defecto y clave de alm
   [03 · Referencia de código](03-referencia-codigo.md#3-mapa-de-elementos-del-dom).
 - **Los IDs son idénticos en ambos idiomas**, lo que permite que los dos JS sean casi intercambiables.
 - **Clases generadas por JS**: `.option`, `.option__dot`, `.option__label`, `.option__remove`,
-  `.chip`, `.chip__dot`.
-- **Atributos de estado**: `#resultCard[data-state]`, `.wheel.is-spinning`, `.result.is-pop`,
-  `.result__value.is-win`, `.toast.is-visible`, `#soundBtn[aria-pressed]`.
-- **Variables CSS inyectadas**: `--c` (punto de color de opción/chip) y `--win` (color del resultado).
+  `.chip`, `.chip__dot` y las 24 bombillas `<i>` dentro de `#bulbs` (`buildBulbs`).
+- **Atributos de estado**: `#resultCard[data-state]`, `.wheel.is-spinning`, `.result__value.is-win`,
+  `.toast.is-visible`, `#soundBtn[aria-pressed]`, `#spinBtn[aria-disabled]`, `#optionInput[aria-invalid]`.
+- **Variables CSS inyectadas**: `--c` (punto de color de opción/chip), `--win` (color del resultado,
+  fijado por `setWin` en `#resultCard` y `#wheel`) y `--i` (índice de cada bombilla).
 - **Enlace de idioma**: `.lang-link` es HTML estático; JS no lo toca. El tema se refleja en
   `html[data-theme]` y en `#themeBtn[aria-pressed]`.
 
 ## 4. Módulos internos de cada `app.js`
 
-Ambos archivos comparten la misma estructura y orden de secciones (verificado: las diferencias son
-textos, comentarios, `STORAGE_KEY` y algunas opciones por defecto). La numeración siguiente es la de
-`app.js`; en `en/app.js` las mismas secciones están tres líneas antes:
+Ambos archivos comparten la misma estructura, orden de secciones y numeración de líneas (las
+diferencias son textos, `plural`, `STORAGE_KEY` y algunas opciones por defecto):
 
 | Líneas | Sección | Responsabilidad |
 | --- | --- | --- |
-| 1–78 | Arranque | `"use strict"`, constantes, `COPY`, `THEMES` |
-| 80–124 | Referencias y estado | `els`, contextos de canvas, variables de módulo |
-| 126–182 | Utilidades y color | `normalize`, `currentTheme`, `palette`, `luminance`, `contrast`, `labelColor`, `toast`, `colorsFor`, `getIndexAtPointer` |
-| 184–226 | Persistencia | `loadState`, `saveState` |
-| 227–257 | Tema | `syncThemeUI`, `setTheme`, `toggleTheme` |
-| 258–316 | Sonido | `getAudio`, `playTick`, `playFanfare`, `updateSoundUI` |
-| 317–446 | Dibujo de la ruleta | `fitLabel`, `drawTicks`, `draw`, `resizeWheel` |
-| 447–524 | Confeti | `resizeFx`, `burstConfetti`, `stepConfetti` |
-| 525–622 | Giro | `finishSpin`, `spin` |
-| 623–753 | Interfaz | `syncControls`, `renderOptions`, `renderHistory`, CRUD y reset |
-| 754–824 | Eventos e inicio | Listeners, `ResizeObserver`, `matchMedia` e inicialización |
+| 1–59 | Arranque | `"use strict"`, constantes, `plural`, `COPY`, `GEMS`, `THEMES` |
+| 61–104 | Referencias y estado | `els`, contextos de canvas, variables de módulo |
+| 106–172 | Utilidades y color | `normalize`, `currentTheme`, `palette`, `luminance`, `contrast`, `labelColor`, `setWin`, `toast`, `colorsFor`, `getIndexAtPointer` |
+| 174–215 | Persistencia | `loadState`, `saveState` |
+| 217–246 | Tema | `syncThemeUI`, `setTheme`, `toggleTheme` |
+| 248–305 | Sonido | `getAudio`, `playTick`, `playFanfare`, `updateSoundUI` |
+| 307–444 | Dibujo de la ruleta | `fitLabel`, `shade`, `draw`, `resizeWheel` |
+| 446–460 | Bombillas del bisel | `buildBulbs` |
+| 462–538 | Confeti | `resizeFx`, `burstConfetti`, `stepConfetti` |
+| 540–645 | Giro | `finishSpin`, `spin` |
+| 647–796 | Interfaz | `syncControls`, `renderOptions`, `renderHistory`, `showHint`, CRUD y reset |
+| 798–871 | Eventos e inicio | Listeners, `ResizeObserver`, `matchMedia` e inicialización |
 
 No hay clases ni prototipos: son funciones y variables de módulo. Esto es intencional (ver documento 07).
 
@@ -125,8 +127,8 @@ No hay clases ni prototipos: son funciones y variables de módulo. Esto es inten
 | `toastTimer` | `number` | `0` | `toast` | No |
 | `audio` | `AudioContext \| null` | `null` | `getAudio` | No |
 
-Constantes relevantes: `TAU`, `STORAGE_KEY`, `THEME_KEY`, `MAX_OPTIONS`, `REDUCED`, `FONT`,
-`DEFAULT_OPTIONS`, `COPY` y `THEMES`. La única diferencia de configuración entre idiomas es
+Constantes relevantes: `TAU`, `STORAGE_KEY`, `THEME_KEY`, `MAX_OPTIONS`, `reduced`, `FONT`,
+`DEFAULT_OPTIONS`, `plural`, `COPY`, `GEMS` y `THEMES`. La única diferencia de configuración entre idiomas es
 `STORAGE_KEY` y el contenido de `DEFAULT_OPTIONS`/`COPY`.
 
 ## 6. Flujo de arranque
@@ -138,14 +140,14 @@ La página correspondiente se carga (ES o EN)
        2. loadState()
             ├─ éxito → options/history/muted desde la clave de ese idioma
             └─ false  → options = DEFAULT_OPTIONS del idioma
-       3. escribe la fecha editorial en #issueDate
+       3. buildBulbs()           → crea las 24 bombillas del bisel
        4. updateSoundUI()        → aria-pressed + etiqueta del botón
        5. syncThemeUI()          → aria-pressed del tema + theme-color
        6. renderOptions()        → lista DOM + aria-label del canvas + draw() + syncControls()
        7. renderHistory()        → chips + visibilidad del mensaje vacío
        8. resizeFx()             → tamaño del canvas de confeti
        9. resizeWheel()          → tamaño real + DPR + draw()
-      10. syncControls()         → habilita/deshabilita controles
+      10. syncControls()         → estado de los controles
       11. registra listeners y ResizeObserver
 ```
 
@@ -159,7 +161,7 @@ con su propia clave de almacenamiento.
 
 ```text
 spin()
- ├─ guardas: si spinning → return; si options.length < 2 → toast + foco al input
+ ├─ guardas: si spinning → return; si options.length < 2 → toast (+ foco al input si el puntero es fino)
  ├─ spinning = true; syncControls(); UI a estado "spinning"
  ├─ getAudio()                     ← desbloquea audio dentro del gesto del usuario
  ├─ sorteo: winner = floor(random * n)
@@ -171,14 +173,15 @@ spin()
         ├─ draw()
         ├─ detecta cambio de porción bajo el puntero → playTick (máx. 1 cada 45 ms)
         └─ al terminar: normaliza rotation, draw() y finishSpin(winner)
-              ├─ escribe resultado y color, data-state="done", animación is-pop
+              ├─ escribe resultado, setWin(color), data-state="done"; anuncia «Resuelto: X» en #resultLive
+              ├─ anima la entrada del resultado con animate() (salvo movimiento reducido)
               ├─ history.unshift + recorte a 12 + renderHistory + saveState
               ├─ playFanfare() + burstConfetti()
               └─ scrollIntoView si el pliego quedó fuera de pantalla
 ```
 
-Con `prefers-reduced-motion: reduce` (leído **una vez** al cargar): 2 vueltas, 650 ms, sin confeti y
-con scroll instantáneo.
+Con `prefers-reduced-motion: reduce` (se consulta en cada giro mediante `reduced()`): 2 vueltas,
+650 ms, sin confeti, sin animación de entrada y con scroll instantáneo.
 
 Detalle matemático en [03 · Referencia de código](03-referencia-codigo.md#6-geometría-y-física-del-giro).
 
@@ -190,9 +193,10 @@ La app no usa renderizado declarativo; cada acción reconstruye lo necesario:
 | --- | --- |
 | `renderOptions()` | `<ul>`, contador, estado vacío, `aria-label` del canvas, dibujo y controles |
 | `renderHistory()` | Chips del historial y mensaje vacío |
-| `syncControls()` | `disabled` de girar/input/añadir/mezclar/restablecer/eliminar y subtítulo del hub |
-| `finishSpin()` | Tarjeta de resultado, historial y controles |
-| `resetAll()` | Resultado, opciones, historial y controles |
+| `syncControls()` | `aria-disabled` del hub durante el giro (y `disabled` con menos de 2 opciones), `readOnly` del campo, `disabled` de añadir/mezclar/restablecer/eliminar y subtítulo del hub |
+| `finishSpin()` | Tarjeta de resultado, color ganador, región `aria-live`, historial y controles |
+| `resetAll()` | Resultado, color ganador, aviso del campo, opciones, historial y controles |
+| `showHint()` | Mensaje en línea bajo el campo y `aria-invalid` |
 
 Los nodos de la lista y del historial se crean con `createElement` y `textContent` (nunca `innerHTML`),
 lo que evita inyección de HTML con las etiquetas del usuario.
@@ -213,7 +217,8 @@ lo que evita inyección de HTML con las etiquetas del usuario.
 | `#wheelCanvas` | `ResizeObserver` | `resizeWheel()` |
 | `matchMedia("(prefers-color-scheme: dark)")` | `change` | Cambia el tema si no hay preferencia guardada |
 | `.lang-link` | navegación | Cambia de documento (ES ↔ EN); sin listener de JS |
-| Botones `×` de cada opción | `click` | `removeOption(index)` (se reenganchan al reconstruir la lista) |
+| `#optionInput` | `input` | Limpia el error en línea al escribir |
+| Botones `×` de cada opción | `click` | `removeOption(index)` (se reenganchan al reconstruir la lista; el foco pasa al botón vecino) |
 
 No hay listeners de `storage`, `visibilitychange`, `beforeunload` ni gestos táctiles.
 
@@ -222,16 +227,18 @@ No hay listeners de `storage`, `visibilitychange`, `beforeunload` ni gestos tác
 `draw()` se ejecuta en cada frame del giro y en cada cambio de tamaño/opciones:
 
 1. Ajusta la transformación al DPR (`ctx.setTransform(dpr, …)`) y limpia.
-2. Centra el contexto en `(W/2, W/2)` y dibuja las 144 marcas de graduación.
+2. Centra el contexto en `(W/2, W/2)`.
 3. Si no hay opciones: círculo discontinuo y termina.
 4. Calcula `segment = TAU / n`, colores y tamaño de fuente adaptativo.
-5. Pinta cada porción como un sector plano (`moveTo(0,0)`, `arc`, `closePath`, `fill`).
-6. Dibuja los separadores finos en color papel.
-7. Dibuja las etiquetas rotadas, con la tinta de mayor contraste, recortadas con `fitLabel` si no
-   caben; las de la mitad izquierda giran 180°.
-8. Dibuja el aro exterior y restaura el contexto.
+5. Pinta cada porción como un sector con degradado radial (`shade` oscurece hacia el centro y aclara
+   en el borde).
+6. Dibuja los separadores finos de luz (`theme.sep`).
+7. Dibuja las etiquetas rotadas, con la tinta o el blanco de mayor contraste, recortadas con
+   `fitLabel` si no caben; las de la mitad izquierda giran 180°.
+8. Superpone un brillo fijo con viñeta y una clavija blanca en cada separador, y restaura el contexto.
 
-El hub y el puntero **no** se dibujan en canvas: son HTML/CSS (`.hub` y `.pointer`).
+El bisel cromado, el halo, las bombillas, el hub y el puntero **no** se dibujan en canvas: son HTML/CSS
+(`.bezel`, `.wheel__glow`, `.bulbs`, `.hub` y `.pointer`).
 
 ### Redimensionado
 
@@ -245,7 +252,7 @@ no hace nada.
 - `burstConfetti()` crea 100 flecos (60 en móvil) desde el centro de la ruleta, con velocidad y ángulo
   aleatorios, gravedad (`vy += 0.24`), rozamiento, rotación y vida decreciente.
 - `stepConfetti()` limpia, integra física, elimina partículas muertas o fuera de pantalla por abajo y
-  dibuja rectángulos de papel con `globalAlpha` y escorzo.
+  dibuja rectángulos con `globalAlpha` y escorzo.
 - Un solo `requestAnimationFrame` activo a la vez; se detiene y limpia al no quedar partículas.
 - Se omite por completo con movimiento reducido.
 

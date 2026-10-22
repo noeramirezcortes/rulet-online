@@ -1,154 +1,190 @@
-> **Nota (rama `ultimodesing`):** este documento describe el diseño «almanaque editorial» de `main`. El diseño «Aurora» de esta rama está en `DESIGN.md`; las secciones de paleta, tipografía y componentes de aquí no aplican.
-
 # 05 · Diseño y UI
 
 ## 1. Intención visual
 
-La página se plantea como la lámina de un almanaque impreso: papel marfil de día, la misma página
-impresa en tinta de noche. Un cabecero con fecha, filetes de uno y tres hilos, tinta bermellón como
-único grito y una didone grande para el titular y el veredicto. La ruleta ocupa el lugar de la
-figura principal, con marcas de graduación y porciones en tintas planas; el panel derecho es una
-columna editorial de filetes, no una tarjeta de cristal.
+El diseño se llama **Aurora**. La página es un escenario: una aurora de colores que deriva despacio
+detrás de todo, paneles de vidrio esmerilado encima y, en el centro, una ruleta con bisel cromado,
+bombillas y porciones de gema. Es oscura por defecto y pasa a un amanecer en pastel de día.
 
-No hay degradados en el texto, halos, `backdrop-filter` ni filtros de grano. La calidez viene del
-papel, la tinta y el bermellón.
+Cuatro ideas lo gobiernan:
+
+- **La aurora es el escenario.** El color vive en el fondo y en la ruleta; la interfaz es vidrio.
+- **La ruleta es la pieza principal.** Bisel cromado, 24 bombillas que parpadean en cadena, porciones
+  con degradado radial, brillo fijo de luz y clavijas en cada separador.
+- **El veredicto tiñe la escena.** Al terminar un giro, el color ganador (`--win`) colorea el halo
+  de la rueda, el resplandor del bisel y el borde de la tarjeta del veredicto.
+- **Legibilidad primero.** El veredicto es la única superficie opaca (con un tinte suave del color
+  ganador) para que el texto se lea siempre, aunque la aurora esté detrás.
 
 La misma hoja `styles.css` se usa en español (`/`) y en inglés (`/en/`); `en/index.html` la referencia
 como `../styles.css`. El diseño es idéntico en ambos idiomas salvo los textos.
 
 ## 2. Temas y tokens
 
-Dos ediciones comparten estructura y componentes:
+Dos temas comparten estructura y componentes:
 
-- **Día** (`:root`): papel `#f4eee1`, tinta `#1a1611`, bermellón `#b03a24`.
-- **Noche** (`[data-theme="night"]`): papel `#15120e`, tinta `#f2e9d8`, bermellón `#e2704d`.
+- **Noche** (`[data-theme="night"]`): fondo `#07060f`, texto `#f4f2ff`, acento `#8b7bff`.
+- **Día** (`:root`): fondo `#f1efff`, texto `#15122e`, acento `#5b4bff`.
 
 El atributo `data-theme="day|night"` vive en `<html>`. Un script inline en el `<head>` lo fija antes
-de pintar para evitar el destello del tema equivocado:
+de pintar para evitar el destello del tema equivocado, y sincroniza el `theme-color`:
 
 1. Si `localStorage["ruleta-theme"]` es `day` o `night`, usa esa preferencia.
 2. Si no, sigue `prefers-color-scheme`.
 3. Si el almacenamiento falla, cae en `day`.
 
 `color-scheme` cambia con el tema, de modo que los controles nativos y las barras de desplazamiento
-acompañan la edición.
+acompañan al tema.
 
 | Token | Día | Noche | Uso |
 | --- | --- | --- | --- |
-| `--paper` | `#f4eee1` | `#15120e` | Fondo y texto sobre tinta |
-| `--paper-2` | `#ede4d2` | `#1c1812` | Pliego del veredicto, hover, `kbd` |
-| `--paper-3` | `#e6dbc5` | `#231d15` | Pressed, botones de sonido |
-| `--ink` | `#1a1611` | `#f2e9d8` | Texto principal, filetes fuertes |
-| `--ink-soft` | `#4e463a` | `#c9bca4` | Texto secundario |
-| `--ink-mute` | `#6e6352` | `#a59880` | Metadatos y etiquetas |
-| `--rule` | `rgba(26,22,17,.22)` | `rgba(242,233,216,.18)` | Filetes finos |
-| `--rule-strong` | `rgba(26,22,17,.5)` | `rgba(242,233,216,.42)` | Filetes y bordes destacados |
-| `--vermilion` | `#b03a24` | `#e2704d` | Acento, sello del veredicto, foco |
-| `--vermilion-deep` | `#8a2b18` | `#f09a80` | Hover del botón de añadir |
-| `--brass` | `#8c6e36` | `#c9a567` | Reserva editorial |
-| `--focus` | `#8a2b18` | `#f09a80` | Contorno de foco |
-| `--radius` | `2px` | `2px` | Esquinas casi rectas |
+| `--bg` | `#f1efff` | `#07060f` | Fondo de la página |
+| `--surface` | `#fbfaff` | `#15132b` | Superficie opaca del veredicto |
+| `--text` | `#15122e` | `#f4f2ff` | Texto principal |
+| `--text-soft` | `#403c6a` | `#c5c2e6` | Texto secundario |
+| `--text-mute` | `#5a5589` | `#9d99c8` | Metadatos y etiquetas |
+| `--glass` | `rgba(255,255,255,.58)` | `rgba(255,255,255,.055)` | Fondo de los paneles de vidrio |
+| `--glass-strong` | `rgba(255,255,255,.82)` | `rgba(255,255,255,.1)` | Hover y superficies destacadas |
+| `--glass-border` | `rgba(21,18,46,.12)` | `rgba(255,255,255,.15)` | Bordes de 1 px |
+| `--field` | `rgba(21,18,46,.05)` | `rgba(255,255,255,.06)` | Campo, filas y chips |
+| `--accent` | `#5b4bff` | `#8b7bff` | Acento principal |
+| `--accent-2` | `#0b8fb0` | `#22d3ee` | Acento frío (hover de bordes, anillo del hub) |
+| `--accent-3` | `#d6247f` | `#ff4fa3` | Acento cálido (errores, estado «girando») |
+| `--btn-grad` | violeta → rosa | cian → violeta → rosa | Botón de añadir y enlace de salto |
+| `--on-btn` | `#ffffff` | `#0b0a1a` | Texto sobre el degradado del botón |
+| `--text-grad` | violeta → rosa → naranja | cian → lila → rosa | Palabra clave del titular |
+| `--focus` | `#5b4bff` | `#22d3ee` | Contorno de foco |
+| `--aurora-a…d` | pasteles | violetas, cian y rosa | Capas de la aurora |
+| `--radius` / `--radius-sm` | `24px` / `14px` | igual | Tarjetas y controles |
 
-Sombras: `--shadow-plate` para la lámina de la ruleta y `--shadow-lift` para el toast. Siempre con
-desplazamiento vertical y desenfoque, nunca un halo.
+Sombras: `--card-shadow` (desplazamiento vertical y desenfoque) más un brillo interior superior
+(`inset 0 1px 0 var(--glass-hi)`) en las superficies de vidrio.
 
 ### Colores de la ruleta
 
-Las porciones no usan tokens CSS: viven en `THEMES.day.palette` y `THEMES.night.palette` dentro de
-`app.js` y `en/app.js`. Cada tema define también `ink`, `paper`, `tick`, `tickStrong`, `ring` y `empty`
-para el dibujo del canvas.
+Las porciones no usan tokens CSS: viven en `GEMS` dentro de `app.js` y `en/app.js`. Se dibujan sobre
+un pozo oscuro, por lo que la paleta es **la misma de día y de noche** (`THEMES.day` y `THEMES.night`
+apuntan a ella):
 
-La etiqueta de cada porción elige entre tinta y papel según cuál dé **mayor contraste** con esa
-porción (`labelColor`). No se usa un umbral de luminancia fijo.
+```text
+#7C4DFF #F5A524 #E0338F #00B8D9 #10B981 #FF5D5D
+#4F46E5 #9BE15D #FF8A3D #38BDF8 #C026D3 #14B8A6
+```
+
+Cada porción se rellena con un degradado radial (`shade(color, -0.42)` en el centro, el color puro
+al 58 % del radio y `shade(color, +0.16)` en el borde). Después se dibujan los separadores, las
+etiquetas, un brillo fijo (`rgba(255,255,255,.24)` arriba a la izquierda, viñeta oscura en el borde)
+y una clavija blanca en cada separador.
+
+La etiqueta de cada porción elige entre tinta (`#0B0A1A`) y blanco según cuál dé **mayor contraste**
+(`labelColor`). No se usa un umbral de luminancia fijo.
 
 ## 3. Tipografía
 
-Dos familias autoalojadas en `assets/fonts/` (woff2, subconjuntos latino y latín extendido):
+Dos familias autoalojadas en `assets/fonts/` (woff2 variables, subconjuntos latino y latín extendido):
 
-- **Bodoni Moda** — titular, marca y valor del veredicto. Didone, con cursiva para la palabra
-  bermellón del titular.
-- **Karla** — interfaz, etiquetas, opciones, botones y texto corrido del canvas.
+- **Unbounded** (400–900) — titular, marca, títulos de bloque, botón central y valor del veredicto.
+  Es ancha y geométrica; se usa con peso 700–800 y tracking negativo.
+- **Manrope** (400–800) — interfaz, etiquetas, opciones, botones y texto de las porciones del canvas.
 
 Ambas se declaran con `font-display: swap` y se precargan las variantes latinas en el `<head>`.
 No hay peticiones a Google Fonts ni a ningún CDN.
 
 | Elemento | Tamaño | Detalle |
 | --- | --- | --- |
-| `h1` | `clamp(2.65rem, 5.9vw, 5rem)` | Bodoni 500, `line-height: .94`, ancho máx. `15ch` |
-| `h1` móvil | `clamp(2.55rem, 12.6vw, 3.4rem)` | `text-wrap: wrap` |
-| Lede | `clamp(.96rem, 1.15vw, 1.05rem)` | Karla, `line-height: 1.6`, máx. `34ch` |
-| Marca | `1.42rem` | Bodoni 600; `1.24rem` en móvil |
-| Tagline de marca | `.7rem` | Mayúsculas, `letter-spacing: .15em` |
-| Fecha | `.75rem` | `letter-spacing: .04em` |
-| Meta del hero | `.7rem` | Mayúsculas, separada por `·` bermellón |
-| Etiquetas y títulos de bloque | `.7rem` | Mayúsculas, `letter-spacing: .16–.18em` |
-| Valor del veredicto | `clamp(1.95rem, 2.9vw, 2.55rem)` | Bodoni 500 |
-| Texto meta del veredicto | `.82rem` | `--ink-soft` |
-| Hub «Girar» | `clamp(.7rem, 1.4vw, .82rem)` | Mayúsculas, `letter-spacing: .24em` |
-| Contador del hub | `clamp(.7rem, 1vw, .74rem)` | Cifras tabulares |
-| Opciones | `.92rem` | Una línea con elipsis |
-| Campo de texto | `.94rem` | — |
-| Botones | `.7rem` | Mayúsculas, `letter-spacing: .1em` |
-| Chips del historial | `.76rem` | Una línea con elipsis |
-| Colofón | `.7rem` | `text-wrap: pretty` |
-| Toast | `.84rem` | — |
+| `h1` | `clamp(2.1rem, 5.6vw, 4.3rem)` | Unbounded 800, `line-height: 1.04`, `letter-spacing: -.04em`, centrado, máx. `18ch` |
+| Palabra clave del `h1` | igual | Degradado `--text-grad` con `background-clip: text` y `@keyframes shimmer` |
+| Lede | `clamp(1rem, 1.5vw, 1.12rem)` | Manrope, `line-height: 1.55`, máx. `50ch` |
+| Marca | `1.02rem` | Unbounded 700 |
+| Etiqueta de marca | `.7rem` | Mayúsculas, `letter-spacing: .1em`; se oculta por debajo de 760px |
+| Meta del hero | `.74rem` | Mayúsculas, píldoras de vidrio con punto de degradado |
+| Títulos de bloque | `.98rem` | Unbounded 700 |
+| Etiquetas | `.74rem` | Mayúsculas, `letter-spacing: .16em` |
+| Valor del veredicto | `clamp(1.9rem, 4.6vw, 3.1rem)` | Unbounded 800; con `.is-win` lleva `text-shadow` del color ganador |
+| Texto meta del veredicto | `.92rem` | `--text-soft` |
+| Hub «Girar» | `clamp(.78rem, 2.5vw, 1.3rem)` | Unbounded 800, mayúsculas, `letter-spacing: .06em` |
+| Contador del hub | `clamp(.62rem, 1.1vw, .74rem)` | Cifras tabulares |
+| Opciones | `.97rem` | Una línea con elipsis |
+| Campo de texto | `.98rem` | — |
+| Botones | `.86rem` | Manrope 800 |
+| Chips del historial | `.86rem` | Una línea con elipsis |
+| Colofón | `.8rem` | `text-wrap: pretty` |
+| Toast | `.88rem` | — |
 
-Texto del canvas: `max(11px, min(22px, R × factor))`, con factor `0.084` hasta 10 opciones, `0.073`
-hasta 15 y `0.062` a partir de 16. El texto se recorta con puntos suspensivos si no cabe.
+Texto del canvas: `max(12px, min(25px, R × factor))`, con factor `0.092` hasta 10 opciones, `0.08`
+hasta 15 y `0.068` a partir de 16, en Manrope 800. El texto se recorta con puntos suspensivos si no
+cabe (`R × 0.54` de ancho máximo, situado a `R × 0.9` del centro).
 
 ## 4. Layout
 
 ```text
-.app  max-width 1200px · padding 24px gutter 42px · columna · z-index 1
-├─ .masthead   marca + tagline · fecha · acciones (tema, idioma, sonido)
-│              filete doble inferior
-├─ .hero       grid 1fr | 280–360px, alineado al pie
-│  ├─ h1       dos líneas, «suerte» en cursiva bermellón
-│  └─ aside    lede + meta, separados por filete vertical
-├─ .stage      grid 1fr | 350–404px
-│  ├─ .plate   ruleta hasta 560px + caption «Fig. 1»
-│  └─ .panel   veredicto · opciones · historial
-└─ .colophon   filete doble · créditos · privacidad
+body        fondo + puntos sutiles; ::before y ::after = capas de aurora (fixed, z-index -1)
+.app        max-width 1180px · gutter fluido · z-index 1
+├─ .masthead   píldora de vidrio sticky: marca + etiqueta · acciones (tema, idioma, sonido)
+├─ .hero       columna centrada: h1 · lede · píldoras de meta
+├─ .stage      grid 1fr | 340–420px
+│  ├─ .stage__wheel   .plate (rueda hasta 600px) · caption · tarjeta del veredicto
+│  └─ .panel          opciones · historial
+└─ .colophon   créditos y privacidad, centrados
 ```
 
 - `.app` centra el contenido y mantiene el `z-index` por encima del canvas de confeti.
 - `.fx` es un canvas fijo a pantalla completa, `pointer-events: none`, `z-index: 50`.
-- El cuerpo tiene un lavado radial muy suave de papel; en noche es una luz cálida casi imperceptible.
-- El filete doble se hace con `border-bottom: 3px double`.
+- La cabecera es `position: sticky`; `html` usa `scroll-padding-top: 88px` para que ancla y foco no
+  queden tapados por ella.
+- El veredicto vive **debajo de la ruleta**, dentro de `.stage__wheel`; el orden del DOM coincide con
+  el orden de lectura (rueda → veredicto → opciones → historial).
+
+### Estructura de la rueda
+
+`.wheel` es un cuadrado (`aspect-ratio: 1`) con capas apiladas:
+
+| Capa | Elemento | Descripción |
+| --- | --- | --- |
+| Halo | `.wheel__glow` | Degradado radial con el color `--win` (o el acento); más intenso al girar |
+| Bisel | `.bezel` | `conic-gradient` cromado; `::after` dibuja el pozo oscuro (`inset: 6.2%`) |
+| Bombillas | `.bulbs` > `i` | 24 `<i>` creadas por `buildBulbs()`, a un 48,4 % del radio; tres colores en ciclo |
+| Ruleta | `#wheelCanvas` | `inset: 7%`, 86 % del lado; dibuja porciones, etiquetas, brillo y clavijas |
+| Puntero | `.pointer` | Gema rosa con `clip-path`, arriba al centro |
+| Hub | `.hub` | Botón de vidrio oscuro al 27 % del lado, con anillo que late |
 
 ## 5. Componentes
 
 | Componente | Selectores | Notas |
 | --- | --- | --- |
-| Cabecera | `.masthead`, `.wordmark` | Tres columnas; el icono es una ruleta de ocho radios |
-| Fecha | `.dateline` | Se oculta por debajo de 1020px |
-| Acciones | `.masthead__actions`, `.icon-btn`, `.lang-link` | 40×40; 38×38 en móvil |
-| Titular | `.hero`, `.hero__title`, `.hero__aside` | Filete inferior; columna lateral con filete izquierdo |
-| Lámina | `.plate`, `.wheel`, `#wheelCanvas` | Canvas con `role="img"`, sombra de imprenta |
-| Marcas | dibujadas en canvas | 144 marcas; cada 12 una más larga y oscura, más un aro exterior |
-| Puntero | `.pointer` | Triángulo con `clip-path`; tinta de día, bermellón de noche |
-| Hub | `.hub`, `.hub__label`, `.hub__sub` | Botón real, aro interior, inversión al hover |
-| Caption | `.caption`, `.caption__fig` | «Fig. 1»; en táctil cambia a «Toca la ruleta para girar» |
-| Veredicto | `.slip`, `.slip__head`, `.result__value`, `.result__meta` | Pliego con filete superior bermellón y perforación discontinua |
-| Opciones | `.block`, `.add-form`, `.options`, `.option` | Lista con puntos de color y botones `×` |
+| Cabecera | `.masthead`, `.wordmark` | Píldora de vidrio; insignia cónica con una ruleta SVG |
+| Acciones | `.masthead__actions`, `.icon-btn`, `.lang-link` | Círculos de 42×42; 40×40 en móvil |
+| Titular | `.hero`, `.hero__title`, `.hero__aside`, `.hero__meta` | Centrado; píldoras con punto de degradado |
+| Rueda | `.plate`, `.wheel`, `.bezel`, `.bulbs`, `#wheelCanvas` | Canvas con `role="img"`; bisel y bombillas aria-hidden |
+| Puntero | `.pointer` | Degradado blanco → rosa, con sombra |
+| Hub | `.hub`, `.hub__label`, `.hub__sub` | Botón real; escala 1,05 al hover; `::before` es el anillo que late |
+| Caption | `.caption`, `kbd` | Pista de teclado; en táctil «Toca la ruleta para girar» |
+| Veredicto | `.slip`, `.slip__head`, `.result__value`, `.result__meta`, `.status` | Superficie opaca con borde degradado y estado en píldora |
+| Opciones | `.block`, `.add-form`, `.field-hint`, `.options`, `.option` | Filas con punto luminoso y botón `×`; error inline bajo el campo |
 | Acciones | `.panel__actions`, `.btn` | Barajar y reiniciar, con iconos SVG |
-| Historial | `.history`, `.chip`, `.chip__dot` | Últimos 10 veredictos visibles |
-| Toast | `.toast` | Fijo abajo, `role="status"` |
+| Historial | `.history` (`<ul>`), `.chip`, `.chip__dot` | Últimos 10 veredictos visibles |
+| Toast | `.toast` | Píldora de vidrio fija abajo, `role="status"` |
+| Salto | `.skip` | Enlace «Saltar al contenido», visible solo con foco |
 | Sin JS | `.noscript` | Aviso fijo |
 
 ### Estados
 
 | Estado | Selector | Efecto |
 | --- | --- | --- |
-| Girando | `.wheel.is-spinning` | Cursor por defecto; el aro interior del hub pasa a bermellón |
-| Girando | `.result[data-state="spinning"]` | Punto bermellón parpadeante |
-| Ganador | `.result[data-state="done"]` | Punto del color ganador |
-| Ganador | `.result__value.is-win` | Subrayado con el color de la porción |
-| Aparición | `.result.is-pop` | `inkIn`: entra con desenfoque y desplazamiento |
-| Tema noche | `html[data-theme="night"]` | Cambia tokens, icono sol/luna y paleta del canvas |
-| Sonido off | `.icon-btn[aria-pressed="true"]` | Fondo `--paper-3` e icono tachado |
+| Girando | `.wheel.is-spinning` | Cursor por defecto; halo más intenso; bombillas a 0,72 s; el anillo del hub se detiene |
+| Girando | `.result[data-state="spinning"]` | Punto rosa parpadeante |
+| Ganador | `.result[data-state="done"]` | Punto y resplandor del color ganador |
+| Ganador | `.result__value.is-win` | `text-shadow` con el color de la porción |
+| Tema noche | `html[data-theme="night"]` | Cambia tokens, aurora, icono sol/luna |
+| Sonido off | `.icon-btn[aria-pressed="true"]` | Fondo `--glass-strong`, borde de acento e icono tachado |
+| Campo con error | `input[aria-invalid="true"]` | Borde `--accent-3`; el mensaje aparece en `.field-hint.is-error` |
+| Campo bloqueado | `input:read-only` | Opacidad reducida (durante el giro) |
+| Botón de girar | `.hub[aria-disabled="true"]` | Sin hover ni `:active`; no se usa `disabled` durante el giro |
 | Toast | `.toast.is-visible` | Opacidad 1 y desplazamiento a 0 |
 | Deshabilitado | `:disabled` | Opacidad reducida y cursor por defecto |
+
+`--win` lo fija `setWin(color)` en `#resultCard` y en `#wheel`; sin ganador se elimina y todo vuelve
+al acento.
 
 ## 6. Movimiento
 
@@ -157,56 +193,75 @@ hasta 15 y `0.062` a partir de 16. El texto se recorta con puntos suspensivos si
 | Giro | JS + `requestAnimationFrame` | 4,4–5,8 s; `1-(1-t)^4`; 5–7 vueltas |
 | Tick | Web Audio | Oscilador de 60 ms; frecuencia sube con el progreso |
 | Fanfarria | Web Audio | 4 notas, 85 ms de separación |
-| Confeti | Canvas | Flecos de papel con gravedad, giro y desvanecido |
-| Punto de estado | `@keyframes blink` | 0,9 s, infinito |
-| Entrada del veredicto | `@keyframes inkIn` | 0,55 s |
-| Tema | `transition` de color de fondo y texto | 0,35 s |
-| Hover / foco / toast | `transition` | 0,16–0,22 s |
+| Confeti | Canvas | Flecos con gravedad, giro y desvanecido (colores de la paleta y blanco) |
+| Aurora | `@keyframes drift-a` / `drift-b` en `body::before/::after` | 26 s y 34 s, `alternate`; solo `transform` |
+| Bombillas | `@keyframes bulb` | 3 s en reposo, 0,72 s al girar; retardo por bombilla (`--i`) |
+| Halo de la rueda | `@keyframes glow` | 1,4 s mientras gira |
+| Anillo del hub | `@keyframes ping` | 2,6 s, infinito; se detiene al girar y si el botón está desactivado |
+| Palabra clave del titular | `@keyframes shimmer` | 7 s, `alternate` |
+| Entrada de la página | `@keyframes rise` | 0,7–0,9 s con retardos escalonados |
+| Entrada del veredicto | Web Animations API (`animate()`) | 420 ms; opacidad y desplazamiento |
+| Punto de estado | `@keyframes blink` | 0,7 s |
+| Hover / foco / toast | `transition` | 0,18–0,22 s sobre `transform`, color y opacidad |
 
 ### Movimiento reducido
 
-1. **CSS**: `@media (prefers-reduced-motion: reduce)` reduce animaciones y transiciones a `0.01ms`
-   y una sola iteración.
-2. **JS**: si `REDUCED`, el giro dura 650 ms, da 2 vueltas, no hay confeti y el desplazamiento al
-   veredicto es instantáneo.
+1. **CSS**: `@media (prefers-reduced-motion: reduce)` apaga **todas** las animaciones (`animation:
+   none`) y reduce las transiciones a `0.01ms`; las bombillas quedan fijas al 90 %.
+2. **JS**: si `reduced()` es verdadero, el giro dura 650 ms, da 2 vueltas, no hay confeti, el
+   desplazamiento al veredicto es instantáneo y no se anima la entrada del resultado.
 
-La preferencia se lee una vez al cargar; cambiarla con la página abierta no surte efecto hasta
-recargar.
+`reduced()` consulta el `MediaQueryList` en cada uso, de modo que un cambio de la preferencia con la
+página abierta se respeta desde el siguiente giro.
 
 ## 7. Responsive
 
 | Rango | Cambios |
 | --- | --- |
-| > 1020px | Dos columnas; fecha visible; ruleta hasta 560px; panel de 350–404px |
-| ≤ 1020px | Una columna; fecha oculta; hero apilado; panel máx. 560px centrado |
-| ≤ 640px | Padding 16px; acciones de 38px; titular a dos líneas; lista sin scroll interno; colofón apilado |
+| > 1020px | Dos columnas; rueda hasta 600px; panel de 340–420px |
+| ≤ 1020px | Una columna; panel máx. 600px centrado |
+| ≤ 760px | Se oculta la etiqueta de marca |
+| ≤ 640px | Padding 14px; acciones de 40px; veredicto y bloques con menos padding; lista sin scroll interno |
 | `hover: none` y puntero grueso | La pista de teclado se sustituye por «Toca la ruleta para girar» |
+| `pointer: fine` | `html` usa `overscroll-behavior: none` (sin rebote de página) |
 
-La lista de opciones tiene `max-height: 409px` en escritorio (ocho opciones) y `max-height: none` en
-móvil. No hay estilos de impresión.
+La lista de opciones tiene `max-height: 372px` en escritorio y `max-height: none` en móvil, con
+`overscroll-behavior: contain`. No hay estilos de impresión.
 
 ## 8. Accesibilidad
 
 ### Semántica y ARIA
 
-- `<header>`, `<main>`, `<aside>`, `<section>`, `<footer>`, un `h1` y dos `h2` en orden.
+- `<header>`, `<main id="main">`, `<aside>`, `<section>`, `<footer>`, un `h1` y dos `h2` en orden.
+- Enlace «Saltar al contenido» (`.skip`) como primer elemento enfocable.
 - El canvas tiene `role="img"` y un `aria-label` que se actualiza: «Ruleta con N opciones: …» o
   «Ruleta vacía» / «Wheel with N options: …» o «Empty wheel».
-- El hub es un `<button>` real con `aria-label="Girar la ruleta"` / `"Spin the wheel"`.
+- El hub es un `<button>` real con `aria-label="Girar la ruleta"` / `"Spin the wheel"`. Durante el
+  giro usa `aria-disabled="true"` en lugar de `disabled`, para no perder el foco del teclado.
 - El enlace de idioma lleva `hreflang`, `lang` del idioma destino y `aria-label` en ese idioma; cada
   documento declara su `lang`.
-- El campo tiene `<label class="sr-only">`; cada botón de eliminar lleva `aria-label="Quitar X"` /
-  `"Remove X"`.
-- El valor del veredicto usa `aria-live="polite"` y `aria-atomic="true"`; el toast, `role="status"`.
+- El campo tiene `<label class="sr-only">` y `aria-describedby` hacia `#optionHint`; los errores
+  («Escribe una opción primero», «Puedes añadir hasta 20 opciones») aparecen bajo el campo con
+  `aria-invalid`.
+- El veredicto se anuncia por una región propia, `#resultLive` (`role="status"`, `aria-live="polite"`,
+  `aria-atomic="true"`, visualmente oculta), con «Resuelto: X»; el texto visible del veredicto no es
+  una región viva, por lo que el lector no anuncia el «…» intermedio. El toast usa `role="status"`.
 - Los botones de tema y sonido exponen `aria-pressed` y actualizan `aria-label` y `title`.
-- Los SVG decorativos y el canvas de confeti llevan `aria-hidden="true"`.
+- Las listas de opciones e historial son `<ul>`; cada botón de eliminar lleva `aria-label="Quitar X"`
+  / `"Remove X"`.
+- Los SVG decorativos, el bisel, las bombillas, el halo y el canvas de confeti llevan
+  `aria-hidden="true"`.
 
-### Teclado
+### Teclado y foco
 
-- `Tab` recorre enlaces, botones y campo; el foco visible es un contorno de 2px con offset 3px.
+- `Tab` recorre enlaces, botones y campo; el foco visible es un contorno de 3 px con offset 3 px
+  (`--focus`, cian en noche, violeta de día).
 - `Espacio` gira salvo dentro de campos editables o sobre otros botones, donde conserva su función.
 - `Enter` en el campo añade la opción.
-- Los botones `×` son enfocables y se accionan con `Enter` o `Espacio`.
+- Al borrar una opción, el foco pasa al botón `×` vecino (o al campo si no queda ninguno).
+- Durante el giro el campo pasa a `readOnly` (no `disabled`) para conservar el foco.
+- `touch-action: manipulation` y `-webkit-tap-highlight-color` transparente en botones, enlaces y
+  canvas.
 
 ### Contraste
 
@@ -214,43 +269,48 @@ Medido sobre los tokens actuales:
 
 | Combinación | Día | Noche |
 | --- | --- | --- |
-| Tinta sobre papel | 15,6:1 | 15,5:1 |
-| Texto secundario sobre papel | 8,0:1 | 10,0:1 |
-| Metadatos sobre papel | 5,1:1 | 6,6:1 |
-| Metadatos sobre `--paper-2` | 4,7:1 | 6,2:1 |
-| Bermellón sobre papel | 5,2:1 | 5,9:1 |
+| Texto sobre fondo | 16,0:1 | 18,2:1 |
+| Texto secundario sobre fondo | 8,9:1 | 11,7:1 |
+| Metadatos sobre fondo | 6,0:1 | 7,5:1 |
+| Metadatos sobre `--surface` | 6,5:1 | 6,7:1 |
+| Texto del botón sobre su degradado | blanco sobre `#5b4bff` 5,4:1 y sobre `#d6247f` 4,8:1 | tinta sobre `#22d3ee` 10,8:1, `#8b7bff` 5,9:1 y `#ff4fa3` 6,4:1 |
 
 Todas superan AA para texto normal. En el canvas, la etiqueta usa la tinta de mayor contraste; el
-peor par de las paletas actuales queda en 4,65:1.
+peor par de la paleta actual es `#E0338F` con 4,70:1. Los paneles de vidrio dependen de lo que haya
+detrás; se verificaron con la aurora por defecto y con los metadatos más tenues.
 
 ### Puntos a revisar
 
 - **El canvas no es enfocable**: el clic para girar no está disponible por teclado directamente, pero
   el botón central equivalente sí.
-- **Objetivos táctiles**: los botones `×` miden 32×32px y los de cabecera 38–40px, por debajo de los
+- **Objetivos táctiles**: los botones `×` miden 36×36px y los de cabecera 40–42px, por debajo de los
   44×44 recomendados.
 - **Estado intermedio**: «Girando» no está en una región `aria-live`; el lector anuncia el ganador,
   no el estado intermedio.
 - **`confirm()` nativo** para reiniciar: accesible, pero rompe la estética y no se puede personalizar.
-- **Alto contraste**: `@media (forced-colors: active)` restaura el color heredado del titular y
-  refuerza los bordes de los controles principales.
+- **Vidrio**: `backdrop-filter` no existe en navegadores antiguos; sin él los paneles quedan
+  semitransparentes sobre la aurora (legibles, pero con menos separación).
+- **Alto contraste**: `@media (forced-colors: active)` fuerza bordes `CanvasText` en las superficies
+  principales y quita el degradado del titular.
 
 ## 9. Assets
 
 | Asset | Uso |
 | --- | --- |
-| `assets/fonts/bodoni-moda-*.woff2` | Display y veredicto (normal, cursiva, latín y latín-ext) |
-| `assets/fonts/karla-*.woff2` | Interfaz y canvas (latín y latín-ext) |
+| `assets/fonts/unbounded-*.woff2` | Display, marca y veredicto (latín y latín-ext) |
+| `assets/fonts/manrope-*.woff2` | Interfaz y texto del canvas (latín y latín-ext) |
 | SVG inline | Marca, tema, sonido, barajar, reiniciar y añadir |
-| Favicon | `data:image/svg+xml` en el `<head>` |
+| Favicon | `data:image/svg+xml` en el `<head>` (gema con puntero) |
 | `preview.png` | Solo documentación; la app no lo carga |
 
 ## 10. Cómo tematizar
 
-1. Cambia los tokens de `:root` (día) y `[data-theme="night"]` (noche) en `styles.css`.
-2. Cambia `THEMES.day` y `THEMES.night` en `app.js` **y** `en/app.js`: paleta, tintas, marcas y aro.
-3. Mantén el contraste de las etiquetas del canvas; `labelColor` elige la tinta con más contraste,
-   pero la paleta debe seguir dando al menos 4,5:1.
-4. Revisa los literales de color que no son tokens: sombras del puntero y del hub, y el `theme-color`
-   del `<head>`.
+1. Cambia los tokens de `:root` (día) y `[data-theme="night"]` (noche) en `styles.css`. La aurora
+   se ajusta con `--aurora-a…d`.
+2. Cambia `GEMS` (y, si hace falta, `THEMES.day` / `THEMES.night`) en `app.js` **y** `en/app.js`.
+3. Mantén el contraste de las etiquetas del canvas; `labelColor` elige entre tinta y blanco, pero la
+   paleta debe seguir dando al menos 4,5:1.
+4. Revisa los literales de color que no son tokens: el bisel cromado, el pozo `#0b0a1a`, el hub, el
+   puntero y las bombillas (`#ffd36b`, `#7ee7ff`, `#ff9bd0`), además del `theme-color` del `<head>` y
+   del script inline.
 5. Comprueba día y noche en móvil (390px y 320px) y escritorio (1440px), en `/` y en `/en/`.

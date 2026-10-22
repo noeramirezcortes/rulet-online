@@ -1,8 +1,8 @@
 # Documentación — Ruleta de la Suerte / Spin the Wheel
 
 Documentación funcional y técnica de la aplicación de este repositorio, **bilingüe (español e
-inglés)** y con un rediseño editorial de **21/10/2026**: papel marfil, tipografía didone, ruleta como
-lámina impresa y dos temas, día y noche.
+inglés)** y con el diseño **Aurora** (22/10/2026): paneles de vidrio sobre una aurora en movimiento, ruleta
+con bisel cromado y bombillas, y dos temas, noche por defecto y día en pastel.
 
 Verificada directamente contra el código actual (no contra suposiciones ni solo contra el README).
 
@@ -44,7 +44,7 @@ En la raíz del repositorio, fuera de `doc/`, hay dos documentos de referencia d
 | Estilos | `styles.css`, **compartido** por ambos idiomas y ambos temas |
 | Fuentes | `assets/fonts/`: Unbounded y Manrope, cuatro woff2 autoalojados (latín y latín-ext) |
 | Temas | Día y noche; conmutador en cabecera, preferencia en `ruleta-theme` y respeto a `prefers-color-scheme` en la primera visita |
-| Captura | `preview.png` (1440×1312, solo documentación) |
+| Captura | `preview.png` (1440×1320, modo día; solo documentación) |
 | Tamaño del código | ES: HTML 180 + CSS 977 + JS 824 líneas · EN: HTML 180 + JS 821 líneas |
 | Dependencias | **Ninguna** (sin `package.json`, sin CDN, sin fuentes externas) |
 | Build / compilación | **Ninguno**; se sirven los archivos tal cual |
@@ -52,23 +52,23 @@ En la raíz del repositorio, fuera de `doc/`, hay dos documentos de referencia d
 | Persistencia | `localStorage`: `ruleta-de-la-suerte:v1` (ES), `spin-the-wheel:v1` (EN) y `ruleta-theme` (compartida) |
 | Tests automatizados | **No existen**; hay un plan de pruebas manual en el documento 06 |
 | Idiomas | Español (raíz) e inglés (`/en/`), con enlace cruzado y `hreflang` |
-| Repositorio git | Inicializado, con `.gitignore`; el rediseño «Aurora» está en la rama `ultimodesing`; `main` conserva el almanaque |
+| Repositorio git | Inicializado, con `.gitignore`; `main` contiene el diseño «Aurora» (PR #1); el almanaque anterior queda en el historial |
 | Carpeta `doc/` | Esta documentación (no la usa la app) |
 
 ## Verificación realizada
 
-- Se revisó el código completo de las piezas de la aplicación (dos HTML, dos JS, el CSS y las seis
-  fuentes) y el contrato entre HTML y JS: 23 IDs en `els`, presentes en ambos idiomas.
+- Se revisó el código completo de las piezas de la aplicación (dos HTML, dos JS, el CSS y las cuatro
+  fuentes) y el contrato entre HTML y JS: IDs de `els`, presentes en ambos idiomas.
 - Se comprobaron los valores reales de animación, sonido, límites, persistencia y geometría del canvas;
   el documento 07 recoge los matices que el `README.md` no detalla (por ejemplo, 12 resultados
   guardados frente a 10 visibles, o que cada idioma guarda sus datos por separado).
 - Se verificó la sintaxis de ambos JS (`node --check`) y se sirvieron las páginas en local para
   confirmar que `/`, `/en/`, `styles.css`, `en/app.js` y las fuentes responden correctamente.
-- Se revisó el resultado renderizado con Chrome headless en 1440×1000, 820 y 390/320 px, en día y
-  noche, con resultado, estado vacío y ambas versiones de idioma. No hay desbordamiento horizontal.
-- Se midió el contraste real de las etiquetas del canvas en ambos temas: el peor par queda en 4,65:1.
-- Se ejecutó el detector Impeccable sobre `/` y `/en/`; el informe quedó limpio salvo
-  `italic-serif-display`, registrado como excepción del brief editorial.
+- Se revisó el resultado renderizado en Chrome (escritorio y 390 px), en día y noche, con resultado y
+  ambas versiones de idioma, sin errores de consola.
+- Se midió el contraste del texto sobre los tokens y de las etiquetas del canvas: el peor par queda en
+  4,70:1.
+- No se ha vuelto a ejecutar el detector Impeccable con el diseño Aurora.
 
 ## Aviso sobre carpetas ajenas a la app
 

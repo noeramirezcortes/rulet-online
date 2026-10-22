@@ -28,7 +28,7 @@ typography:
 
 # La Ruleta — Aurora
 
-Rama `ultimodesing`. Sustituye al almanaque editorial de `main` por un escenario inmersivo, oscuro por defecto y en pastel de día.
+Diseño oficial de `main`. Sustituye al almanaque editorial anterior por un escenario inmersivo, oscuro por defecto y en pastel de día.
 
 ## Principios
 

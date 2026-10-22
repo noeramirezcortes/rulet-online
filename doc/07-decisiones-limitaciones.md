@@ -10,9 +10,9 @@
 | **CSS único compartido** | Un solo sistema visual para ambos idiomas y ambos temas; menos peso y mantenimiento | Los estilos no pueden variar por idioma sin selectores extra |
 | **Temas día y noche con preferencia guardada** | La página se adapta al sistema en la primera visita y recuerda la elección manual | Dos paletas que mantener y verificar; el tema se comparte entre idiomas |
 | **Script mínimo en el `<head>`** | Fija `data-theme` antes del primer pintado y evita el destello de tema incorrecto | Un script inline más que autorizar en una CSP estricta |
-| **Paleta de porciones plana por tema** | Cada porción se lee como tinta impresa, sin degradados ni cristal | Doce colores por tema que ajustar a mano en ambos JS |
-| **Etiquetas del canvas con contraste calculado** | `labelColor` elige tinta o papel según el contraste real de cada porción | Más código de dibujo; el resultado debe revisarse al cambiar la paleta |
-| **Fuentes autoalojadas** | Bodoni Moda y Karla dan carácter editorial sin CDN ni peticiones a terceros | Seis woff2 en el repositorio y `@font-face` que mantener |
+| **Una paleta de gemas para ambos temas** | La ruleta se dibuja sobre un pozo oscuro, así que doce colores sirven de día y de noche; cada porción lleva degradado radial | Los colores viven en `GEMS` y hay que ajustarlos a mano en ambos JS |
+| **Etiquetas del canvas con contraste calculado** | `labelColor` elige tinta o blanco según el contraste real de cada porción | Más código de dibujo; el resultado debe revisarse al cambiar la paleta |
+| **Fuentes autoalojadas** | Unbounded y Manrope dan carácter sin CDN ni peticiones a terceros | Cuatro woff2 en el repositorio y `@font-face` que mantener |
 | **Claves de almacenamiento separadas** | Cada idioma conserva su lista sin mezclar idiomas | Cambiar de idioma no traslada opciones; el usuario puede percibirlo como pérdida |
 | **Enlace de idioma estático** | Sin JavaScript, sin parpadeo, indexable y accesible | Recarga completa; no conserva el estado de la ruleta |
 | **Canvas 2D para la ruleta** | Sectores exactos, rotación barata y un solo elemento que redibujar | Texto menos accesible que HTML; etiquetas dibujadas a mano |
@@ -64,17 +64,18 @@
 18. **Historial sin validar longitud ni formato de color al cargar.** Se comprueba que `label` y
     `color` sean strings, pero una etiqueta de miles de caracteres o un color inválido pueden romper
     el diseño (no ejecutan código).
-19. **`color-mix()`** requiere navegadores recientes. Sin él, el filete del veredicto usa el color puro
-    de la porción; no hay otros efectos dependientes.
+19. **`color-mix()` y `backdrop-filter`** requieren navegadores recientes. Sin `color-mix()` se pierden
+    el halo de la rueda, el tinte del veredicto y el resplandor del texto ganador; sin `backdrop-filter`
+    los paneles de vidrio no desenfocan la aurora.
 20. **El canvas no es enfocable** (`role="img"` + `click`), aunque el botón central ofrece la misma
     acción por teclado. Las etiquetas tampoco son texto seleccionable ni traducible.
-21. **Objetivos táctiles ajustados** en los botones `×` (32×32 px) y en los de cabecera (40×40 px en
-    escritorio, 38×38 px en móvil).
+21. **Objetivos táctiles ajustados** en los botones `×` (36×36 px) y en los de cabecera (42×42 px en
+    escritorio, 40×40 px en móvil).
 22. **El estado «Girando»/«Spinning» no es `aria-live`**; solo se anuncia el valor final.
 23. **Animación ligada a `requestAnimationFrame` y al reloj.** En pestañas en segundo plano el giro se
     pausa y termina al volver; no hay control de pausa.
-24. **Coste visual en móviles modestos** por las sombras de la lámina y el canvas a DPR 2. No hay
-    `backdrop-filter` ni halos que agraven el pintado.
+24. **Coste visual en móviles modestos** por el `backdrop-filter`, las capas de aurora animadas, las
+    24 bombillas y el canvas a DPR 2. Con movimiento reducido se apagan las animaciones.
 25. **Sin `og:image`** pese a existir `preview.png`; al compartir no se muestra miniatura.
 26. **Sin service worker.** No hay instalación como PWA ni garantía de funcionamiento offline tras
     limpiar caché.
@@ -129,9 +130,9 @@
 13. **Detección de idioma** con `navigator.language` y redirección opcional, respetando una elección
     manual (cookie o `localStorage`).
 14. **PWA** con service worker y manifiesto para uso offline instalado.
-15. **Preferencia de movimiento reactiva** con `matchMedia(...).addEventListener("change", …)`.
+15. ~~**Preferencia de movimiento reactiva**~~ — hecho: `reduced()` consulta el `MediaQueryList` en cada uso.
 16. **Tercer tema o acentos por estación** (por ejemplo, una variante sepia) reutilizando los tokens;
-    y eliminar los colores literales que quedan en sombras y en el canvas.
+    y eliminar los colores literales que quedan en el bisel, el hub, las bombillas y el canvas.
 
 ### Prioridad baja / refactor
 
@@ -211,17 +212,16 @@
 | Límites 20 opciones / 40 caracteres / 12 historial / 10 visibles | ✅ en ambos JS |
 | Movimiento reducido aplicado en CSS y JS | ✅ |
 | Tema día/noche, conmutador y respeto a `prefers-color-scheme` | ✅ en ambos idiomas; sin destello inicial |
-| Contraste de las etiquetas del canvas | ✅ peor par 4,65:1 en ambos temas |
+| Contraste de las etiquetas del canvas | ✅ peor par 4,70:1 (`#E0338F`); la paleta es la misma en ambos temas |
 | Sintaxis de ambos JS | ✅ `node --check` |
 | Rutas HTTP `/`, `/en/`, `styles.css`, `en/app.js` y fuentes | ✅ 200 con un servidor local |
 | `hreflang` y `og:locale` en ambas páginas | ✅ (rutas relativas) |
 | Enlace de idioma recíproco | ✅ (`en/index.html` ↔ `../index.html`) |
-| Revisión visual en Chrome | ✅ 1440×1000, 820 y 390/320 px; día, noche, resultado y estado vacío; ES y EN |
-| Desbordamiento horizontal | ✅ ninguno en los anchos probados |
-| Detector Impeccable | ✅ informe limpio salvo `italic-serif-display`, excepción registrada del brief editorial |
+| Revisión visual en Chrome | ✅ escritorio (≈1540×780) y móvil de 390 px; día, noche y resultado; ES y EN. Sin errores de consola. No se revisaron 820/320 px ni el estado vacío con el nuevo diseño |
+| Detector Impeccable | ⚠️ No se ha vuelto a ejecutar con el diseño Aurora |
 | Tests / lint / CI | ⚠️ Ausentes |
 | Documentación | `doc/` completa, enlazada desde el README; `DESIGN.md` y `PRODUCT.md` en la raíz |
 
-La verificación visual se hizo con Chrome headless (capturas en `.impeccable/review/`) y el detector
-Impeccable sobre `/` y `/en/` en ambos temas. Antes de un cambio grande, repite el plan de pruebas del
+La verificación visual del diseño Aurora se hizo en Chrome con capturas manuales de `/` y `/en/`.
+Antes de un cambio grande, repite el plan de pruebas del
 documento 06 en los dos idiomas.

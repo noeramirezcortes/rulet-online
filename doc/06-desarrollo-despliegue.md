@@ -40,7 +40,7 @@ mantener la estructura: `en/index.html` carga `../styles.css` y `en/app.js`.
 | **GitHub Pages** | Subir los archivos → *Settings → Pages* → rama/carpeta raíz | Mantener `en/` y `styles.css` en la raíz |
 | **Vercel** | Importar el repositorio, framework «Other», sin build | Directorio de salida: raíz |
 | **Cloudflare Pages** | Conectar repo, build vacío, salida `/` | — |
-| **Hosting compartido / FTP** | Subir `index.html`, `app.js`, `styles.css` y la carpeta `en/` | `preview.png` y `doc/` son opcionales |
+| **Hosting compartido / FTP** | Subir `index.html`, `app.js`, `styles.css`, `assets/fonts/` y la carpeta `en/` | `preview.png` y `doc/` son opcionales |
 
 Comprobaciones tras publicar:
 
@@ -55,7 +55,10 @@ Recomendaciones:
 - `index.html` y `en/index.html` con `Cache-Control: no-cache` o vida corta; CSS/JS pueden cachearse
   más, pero al no llevar *hash* en el nombre conviene una vida corta o añadir `?v=...`.
 - No se necesitan cabeceras CORS, CSP especial ni redirecciones. Si añades CSP, permite `'self'` para
-  scripts/estilos y `data:` para el favicon; el audio y el canvas no requieren permisos.
+  scripts, estilos y fuentes, `data:` para el favicon y un *hash* o `'unsafe-inline'` para el script
+  mínimo del `<head>` que fija el tema antes de pintar; el audio y el canvas no requieren permisos.
+- Las fuentes van en `assets/fonts/` y se sirven desde el propio dominio: no hay que configurar CORS,
+  pero sí conviene cachearlas con una vida larga (llevan el peso en el nombre y no cambian).
 - HTTPS no es obligatorio para que funcione, pero es lo esperable en cualquier hosting moderno.
 
 ## 4. Personalización
@@ -63,22 +66,22 @@ Recomendaciones:
 > Los cambios de lógica deben replicarse en **`app.js` y `en/app.js`**. Los textos, en
 > **`index.html` y `en/index.html`**. `styles.css` es compartido.
 
-| Cambio | Archivo · línea | Instrucciones |
+| Cambio | Archivo | Instrucciones |
 | --- | --- | --- |
-| Opciones iniciales | `app.js:14`, `en/app.js:14` | Edita `DEFAULT_OPTIONS` en cada idioma. Afecta también a «Restablecer» |
-| Colores de la ruleta | `app.js:19`, `en/app.js:19` | Edita `PALETTE` (12 hex) en ambos. Se usa para porciones, puntos, chips y confeti |
-| Máximo de opciones | `app.js:10`, `en/app.js:10` | `MAX_OPTIONS`. El contador se actualiza solo |
-| Longitud máxima de una opción | `index.html:86`, `en/index.html:86`, `app.js:107`/`:602`, `en/app.js:107`/`:602` | Cambia el `maxlength` y los dos `slice(0, 40)` de cada JS |
-| Claves de almacenamiento | `app.js:9`, `en/app.js:9` | Cambiarlas invalida los datos de ese idioma |
-| Velocidad / vueltas | `app.js:478–481`, `en/app.js:478–481` | `turns`, `duration`, y los valores de `REDUCED` |
-| Confeti | `app.js:350`, `en/app.js:350` | `70` móvil / `120` escritorio |
-| Sonido | `app.js:149–182`, `en/app.js:149–182` | Frecuencias, tipos de onda, ganancias |
-| Tema visual | `styles.css:2–16` | Tokens de color, radio y fuente (afecta a ambos idiomas) |
-| Fondo y halos | `styles.css:28–32`, `263–273` | Degradados radiales y halo de la ruleta |
-| Enlace de idioma | `index.html:35`, `en/index.html:35`, `styles.css:226–253` | Texto `EN`/`ES`, `href`, `hreflang` y estilos |
-| Puntos de ruptura | `styles.css:784`, `790` | 960 px y 560 px |
+| Opciones iniciales | `app.js`, `en/app.js` | Edita `DEFAULT_OPTIONS` en cada idioma. Afecta también a «Reiniciar» |
+| Colores de la ruleta | `app.js`, `en/app.js` | Edita `THEMES.day` y `THEMES.night` en ambos. Se usan en porciones, puntos, chips y confeti |
+| Máximo de opciones | `app.js`, `en/app.js` | `MAX_OPTIONS`. El contador se actualiza solo |
+| Longitud máxima de una opción | `index.html`, `en/index.html`, ambos JS | Cambia el `maxlength` y los dos `slice(0, 40)` de cada JS |
+| Claves de almacenamiento | `app.js`, `en/app.js` | `STORAGE_KEY` por idioma y `THEME_KEY` compartida; cambiarlas invalida los datos |
+| Velocidad / vueltas | `app.js`, `en/app.js` | `turns`, `duration` y los valores de `REDUCED` dentro de `spin` |
+| Confeti | `app.js`, `en/app.js` | `60` móvil / `100` escritorio en `burstConfetti` |
+| Sonido | `app.js`, `en/app.js` | Frecuencias, tipos de onda y ganancias en `playTick` / `playFanfare` |
+| Tema visual | `styles.css` | Tokens de `:root` (día) y `[data-theme="night"]` (noche); afecta a ambos idiomas |
+| Tipografía | `styles.css`, `assets/fonts/` | Sustituye los woff2 y actualiza los `@font-face` y los `preload` del `<head>` |
+| Enlace de idioma | `index.html`, `en/index.html`, `styles.css` | Texto `EN`/`ES`, `href`, `hreflang` y estilos de `.lang-link` |
+| Puntos de ruptura | `styles.css` | 1020 px y 640 px |
 | Textos, título y SEO | `index.html`, `en/index.html` | `<title>`, `meta description`, OG, hero, footer |
-| Favicon | `index.html:16`, `en/index.html:16` | SVG en data URI |
+| Favicon | `index.html`, `en/index.html` | SVG en data URI |
 | Imagen para redes | Ambos HTML | No hay `og:image`; puedes añadir `preview.png` con URL absoluta |
 
 > **Coherencia de color:** la paleta de la ruleta está en ambos JS y el resto del tema en CSS. Si cambias
@@ -143,8 +146,8 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 
 | # | Caso | Resultado esperado |
 | ---: | --- | --- |
-| 1 | Primera visita a `/` sin datos | 8 opciones de ejemplo en español, contador `8/20`, resultado `—`, historial vacío |
-| 2 | Primera visita a `/en/` sin datos | 8 opciones en inglés, textos en inglés, contador `8/20` |
+| 1 | Primera visita a `/` sin datos | 8 opciones de ejemplo en español, contador `8/20`, resultado `—`, historial vacío, tema según el sistema |
+| 2 | Primera visita a `/en/` sin datos | 8 opciones en inglés, textos en inglés, contador `8/20`, tema según el sistema |
 | 3 | Enlace `EN` desde la portada | Navega a `en/index.html`; la página tiene `lang="en"` y estilos |
 | 4 | Enlace `ES` desde `/en/` | Vuelve a `index.html` con `lang="es"` |
 | 5 | Añadir opciones en ES y cambiar a EN | La lista inglesa es independiente (y viceversa) |
@@ -163,40 +166,47 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 | 18 | Resultado e historial | El ganador aparece arriba del historial con su color; máximo 10 visibles |
 | 19 | Recargar tras varios giros | Opciones, historial y silencio se conservan por idioma; el resultado vuelve a `—` |
 | 20 | Silenciar / reactivar | Cambia el icono y `aria-pressed`, no suena si está silenciado, y persiste por idioma |
-| 21 | Restablecer → cancelar | No cambia nada |
-| 22 | Restablecer → aceptar | Vuelven las 8 opciones de ese idioma, historial vacío, resultado `—`; el silencio se mantiene |
+| 21 | Reiniciar → cancelar | No cambia nada |
+| 22 | Reiniciar → aceptar | Vuelven las 8 opciones de ese idioma, historial vacío, resultado `—`; el silencio y el tema se mantienen |
 | 23 | `localStorage` corrupto | Arranca con las opciones por defecto del idioma, sin errores visibles |
 | 24 | `localStorage` bloqueado | La app funciona en memoria; al recargar vuelve al estado inicial |
 | 25 | Ancho 360 / 768 / 1440 px | Sin desbordamiento horizontal; una columna en móvil y tableta, en ambos idiomas |
-| 26 | Solo teclado | `Tab` recorre idioma, sonido, controles y `×`; foco visible; `Espacio` gira; `Enter` añade |
+| 26 | Solo teclado | `Tab` recorre tema, idioma, sonido, controles y `×`; foco visible; `Espacio` gira; `Enter` añade |
 | 27 | Movimiento reducido | Giro de ~0,65 s y 2 vueltas, sin confeti |
 | 28 | JavaScript desactivado | Se muestra el aviso `<noscript>` en el idioma de la página |
-| 29 | Sin red tras cargar | La app sigue funcionando (no hay peticiones) |
+| 29 | Sin red tras cargar | La app sigue funcionando con los archivos y fuentes ya cacheados |
 | 30 | Revisar el código fuente | `hreflang="es"`/`"en"` y `og:locale` correctos en cada página |
+| 31 | Primera visita con el sistema en oscuro | Arranca en noche; con el sistema en claro, en día |
+| 32 | Cambiar de tema y recargar | La preferencia se conserva y se comparte entre ES y EN |
+| 33 | Cambiar `prefers-color-scheme` con la página abierta | Sigue el sistema solo si no hay preferencia guardada |
+| 34 | Día y noche, escritorio y móvil | Etiquetas del canvas legibles, sin solaparse; el puntero y el hub contrastan |
 
 ## 7. Rendimiento
 
-- **Peticiones**: 3 archivos por página (HTML, CSS y JS) + favicon inline; sin fuentes ni CDN.
-- **Peso**: ~44 KB por página sin comprimir; los cinco archivos suman ~71 KB. `preview.png` no se carga.
-- **CSS compartido**: al cambiar de idioma, `styles.css` suele estar en caché; solo se descargan el
-  HTML y el JS de la otra versión.
-- **Dibujo**: la ruleta solo se redibuja al girar, cambiar opciones o redimensionar. No hay bucle
-  permanente.
-- **Confeti**: máximo 120 partículas, un solo `requestAnimationFrame`, se detiene al vaciarse.
+- **Peticiones**: HTML, CSS y JS de la página, más las dos fuentes latinas precargadas; el favicon es
+  inline y no hay CDN.
+- **Peso**: ~127 KB iniciales sin comprimir (unos 57 KB de HTML + CSS + JS y 71 KB de las dos fuentes
+  latinas precargadas). Las variantes cursiva y latín-ext se descargan solo si se necesitan.
+  `preview.png` no se carga.
+- **CSS compartido**: al cambiar de idioma, `styles.css` y las fuentes suelen estar en caché; solo se
+  descargan el HTML y el JS de la otra versión.
+- **Dibujo**: la ruleta solo se redibuja al girar, cambiar opciones, cambiar de tema o redimensionar.
+  No hay bucle permanente.
+- **Confeti**: máximo 100 flecos, un solo `requestAnimationFrame`, se detiene al vaciarse.
 - **DPR** limitado a 2 para evitar canvas gigantes en pantallas 3x/4x.
 - **DOM**: la lista se reconstruye entera en cada cambio, pero el máximo es 20 elementos.
-- **Coste potencial**: `backdrop-filter` en tarjetas y sombras grandes pueden notarse en móviles
-  modestos; el blur del halo (`filter: blur(26px)`) también.
+- **Coste potencial**: las sombras de la lámina y el canvas a DPR 2 pueden notarse en móviles
+  modestos; no hay `backdrop-filter` ni halos.
 - **Sin memoria acumulada**: los nodos antiguos se descartan; los listeners mueren con ellos.
 
 ## 8. Compatibilidad
 
 | Característica | Requiere | Si falta |
 | --- | --- | --- |
-| `color-mix()` | Chrome/Edge 111+, Firefox 113+, Safari 16.4+ | El resplandor del resultado no se aplica; el resto igual |
+| `color-mix()` | Chrome/Edge 111+, Firefox 113+, Safari 16.4+ | El filete del veredicto usa el color puro de la porción; el resto igual |
 | `aspect-ratio` | Navegadores de 2021+ | La ruleta podría deformarse |
 | `100svh` | Chrome 108+, Safari 15.4+, Firefox 101+ | Se ignora `min-height` |
-| `backdrop-filter` | Modernos (Safari con prefijo, ya incluido) | Tarjetas más opacas, sigue legibles |
+| `text-wrap: balance` / `pretty` | Chrome 114+, Safari 17.5+, Firefox 121+ | Los títulos y el colofón parten de forma menos cuidada |
 | `ResizeObserver` | Modernos | Solo se redimensiona con `window.resize` |
 | `String.prototype.trimEnd` | ES2019 | `fitLabel` fallaría |
 | `AudioContext` / `webkitAudioContext` | Modernos | Sin sonido |
@@ -216,19 +226,22 @@ Checklist al modificar:
 2. **Replicar los cambios de lógica en `app.js` y `en/app.js`** (o extraer un módulo compartido).
 3. Si cambias el esquema guardado, actualizar `loadState`, `saveState`, este documento y el README.
 4. Si cambias `MAX_OPTIONS`, revisar el texto `0/20` inicial de ambos HTML y el `maxlength` si aplica.
-5. Si cambias la paleta, comprobar contraste del texto del resultado (`#14182b` sobre porciones
-   claras) y el color de los chips, en ambos idiomas.
+5. Si cambias `THEMES.day`/`THEMES.night` o los tokens de color, comprueba el contraste real de las
+   etiquetas del canvas (las resuelve `labelColor`), el puntero, el hub y los chips del historial, en
+   día y en noche. Mantén alineadas la paleta de los dos JS y los tokens de `styles.css`.
 6. Probar el giro con 2, 8, 13 y 20 opciones (los casos de color y tamaño de fuente cambian).
 7. Repetir el plan de pruebas manual en ES y, al menos, los casos clave en EN.
 8. Verificar móvil real o emulación a 360 px.
 9. Revisar que no se hayan añadido peticiones de red accidentales (privacidad y offline).
-10. Mantener el README sincronizado; ya lista las cinco piezas y enlaza a `doc/README.md`.
+10. Mantener el README sincronizado; ya describe la estructura, las fuentes autoalojadas, los dos
+    temas y enlaza a `doc/README.md`.
 
 ## 10. Control de versiones
 
-El repositorio está inicializado en git (rama `main`). El historial registra la versión española
-original, la versión inglesa con selector de idioma, la documentación y el enlace a ella desde el
-README. El número exacto de commits puede variar:
+El repositorio está inicializado en git. `main` conserva la versión española original, la versión
+inglesa con selector de idioma, la documentación y el enlace a ella desde el README. El rediseño
+editorial con temas día/noche se desarrolla en la rama `rediseno-almanaque`. El número exacto de
+commits puede variar:
 
 El árbol de trabajo puede contener ajustes locales sin confirmar (por ejemplo, esta misma
 documentación o retoques del README). Consulta siempre el estado real:

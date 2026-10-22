@@ -41,11 +41,12 @@ otra página; **no** traduce al vuelo ni comparte opciones entre idiomas.
 | Eliminar opción | Botón `×` por fila | `removeOption` |
 | Mezclar opciones | Barajado Fisher–Yates de la lista (no del dibujo) | `shuffleOptions` |
 | Restablecer | Vuelve a las 8 opciones por defecto, borra historial y resultado; pide confirmación | `resetAll` |
-| Resultado destacado | Tarjeta con el ganador, su color de porción y una animación de aparición | `finishSpin` |
-| Confeti | 120 partículas en escritorio, 70 en móvil; desactivado con movimiento reducido | `burstConfetti` |
+| Resultado destacado | Pliego con el ganador, su color de porción y una animación de aparición | `finishSpin` |
+| Confeti | 100 flecos de papel en escritorio, 60 en móvil; desactivado con movimiento reducido | `burstConfetti` |
 | Historial | Últimos resultados como *chips* con su color; se muestran 10 y se guardan 12 | `renderHistory` |
-| Persistencia | Opciones, historial y silencio sobreviven a la recarga, por idioma | `loadState`, `saveState` |
-| Cambio de idioma | Enlace `EN`/`ES` en la cabecera; navega a la otra página | `.lang-switch` |
+| Persistencia | Opciones, historial y silencio sobreviven a la recarga, por idioma; el tema se guarda aparte | `loadState`, `saveState` |
+| Tema día / noche | Conmutador en la cabecera, preferencia guardada y seguimiento de `prefers-color-scheme` en la primera visita | `setTheme`, `toggleTheme` |
+| Cambio de idioma | Enlace `EN`/`ES` en la cabecera; navega a la otra página | `.lang-link` |
 | Atajos | `Espacio` gira; `Enter` dentro del campo añade una opción | `keydown`, `<form>` |
 | Responsive | Dos columnas en escritorio; una columna en tableta/móvil | `styles.css` |
 | Accesibilidad | Foco visible, etiquetas ARIA, `aria-live` en el resultado, respeto a `prefers-reduced-motion` | ver documento 05 |
@@ -101,7 +102,7 @@ El cambio de idioma es una navegación completa, no un estado de la aplicación.
 - Ruletas con pesos/probabilidades configurables.
 - Varias ruletas o guardado de listas con nombre.
 - Compartir una lista mediante URL.
-- Más idiomas, modo claro o PWA.
+- Más idiomas o PWA.
 
 ## 7. Requisitos
 
@@ -113,7 +114,7 @@ El cambio de idioma es una navegación completa, no un estado de la aplicación.
 | Web Audio | Opcional: si no existe, no hay sonido |
 | Canvas 2D | Obligatorio para dibujar la ruleta |
 | ResizeObserver | Opcional: sin él, la ruleta se redimensiona solo al cambiar el tamaño de ventana |
-| Conexión | Solo para la primera descarga de los archivos |
+| Conexión | Solo para la primera descarga de los archivos y las fuentes autoalojadas |
 
 ## 8. Glosario
 

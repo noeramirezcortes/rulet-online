@@ -7,7 +7,12 @@
 | **Vanilla JS, sin framework** | Cero dependencias, cero build, despliegue inmediato y carga mínima | Estado y DOM manuales; sin reactividad ni componentes |
 | **Un único `app.js` por idioma, en IIFE** | Evita globals, permite `file://` y mantiene todo localizable | Lógica duplicada; no hay exports ni tests unitarios directos |
 | **Dos HTML independientes (ES/EN)** | Metadatos, `lang` y textos correctos sin runtime i18n | Duplicación de estructura y riesgo de que las versiones se desincronicen |
-| **CSS único compartido** | Un solo tema para ambos idiomas; menos peso y mantenimiento | Los estilos no pueden variar por idioma sin selectores extra |
+| **CSS único compartido** | Un solo sistema visual para ambos idiomas y ambos temas; menos peso y mantenimiento | Los estilos no pueden variar por idioma sin selectores extra |
+| **Temas día y noche con preferencia guardada** | La página se adapta al sistema en la primera visita y recuerda la elección manual | Dos paletas que mantener y verificar; el tema se comparte entre idiomas |
+| **Script mínimo en el `<head>`** | Fija `data-theme` antes del primer pintado y evita el destello de tema incorrecto | Un script inline más que autorizar en una CSP estricta |
+| **Paleta de porciones plana por tema** | Cada porción se lee como tinta impresa, sin degradados ni cristal | Doce colores por tema que ajustar a mano en ambos JS |
+| **Etiquetas del canvas con contraste calculado** | `labelColor` elige tinta o papel según el contraste real de cada porción | Más código de dibujo; el resultado debe revisarse al cambiar la paleta |
+| **Fuentes autoalojadas** | Bodoni Moda y Karla dan carácter editorial sin CDN ni peticiones a terceros | Seis woff2 en el repositorio y `@font-face` que mantener |
 | **Claves de almacenamiento separadas** | Cada idioma conserva su lista sin mezclar idiomas | Cambiar de idioma no traslada opciones; el usuario puede percibirlo como pérdida |
 | **Enlace de idioma estático** | Sin JavaScript, sin parpadeo, indexable y accesible | Recarga completa; no conserva el estado de la ruleta |
 | **Canvas 2D para la ruleta** | Sectores exactos, rotación barata y un solo elemento que redibujar | Texto menos accesible que HTML; etiquetas dibujadas a mano |
@@ -17,8 +22,6 @@
 | **Ganador sorteado antes de animar** | La animación es solo presentación; el resultado es justo e inmediato | Hay que calcular el ángulo para que coincida con el puntero |
 | **`Math.random()`** | Suficiente para decisiones cotidianas | **No es criptográficamente seguro**; no usar para sorteos con valor económico |
 | **Sin tests ni build** | El proyecto nace como archivos estáticos | Deuda técnica: cualquier cambio se valida a mano |
-| **Fuentes del sistema** | Rapidez y privacidad | La apariencia varía entre sistemas operativos |
-| **Solo tema oscuro** | Coherencia visual y alcance acotado | No hay modo claro |
 | **Límite de 20 opciones** | Mantiene las etiquetas legibles en pantalla | Listas largas quedan fuera; el límite es fijo |
 | **Historial de 12 (muestra 10)** | Margen para futuras ampliaciones sin cambiar el esquema | Se almacenan 2 entradas invisibles |
 | **Reset con `confirm()`** | Evita pérdidas accidentales sin construir un modal | Ruptura estética y no personalizable |
@@ -31,47 +34,55 @@
 2. **Sin pesos.** Todas las opciones tienen la misma probabilidad.
 3. **Sin compartir.** No se puede enviar una lista por URL ni importarla desde la interfaz.
 4. **Sin sincronización entre pestañas.** No se escucha el evento `storage`; la última pestaña que
-   guarde gana y las demás muestran datos obsoletos hasta recargar.
+   guarde gana y las demás muestran datos obsoletos hasta recargar. El tema tampoco se propaga en
+   caliente entre pestañas.
 5. **Sin sincronización entre idiomas.** Cada versión guarda opciones, historial y silencio en su
-   propia clave; cambiar de idioma no traslada nada.
-6. **El resultado no se restaura al recargar.** Opciones, historial y silencio sí; la tarjeta vuelve a
-   `—`.
+   propia clave; cambiar de idioma no traslada nada. El tema sí es compartido.
+6. **El resultado no se restaura al recargar.** Opciones, historial, silencio y tema sí; la tarjeta
+   vuelve a `—`.
 7. **Historial de solo 10 visibles** aunque se guarden 12, sin marcas de tiempo ni botón de vaciado.
 8. **Duplicados permitidos.** Añadir «Pizza» dos veces crea dos porciones indistinguibles.
-9. **Restablecer conserva el silencio.** Puede sorprender si se espera un reset total.
+9. **Restablecer conserva el silencio y el tema.** Puede sorprender si se espera un reset total.
 10. **El límite de 40 caracteres se aplica en tres sitios por idioma** (HTML y dos en JS); si se cambia
     uno solo, el comportamiento es inconsistente.
-11. **La preferencia de movimiento reducido se lee una vez.** Cambiarla requiere recargar.
-12. **Solo dos idiomas y tema oscuro.** No hay detección automática del navegador ni redirección.
+11. **La preferencia de movimiento reducido se lee una vez.** Cambiarla requiere recargar; el tema, en
+    cambio, sí reacciona al sistema si no hay elección guardada.
+12. **Solo dos idiomas.** No hay detección automática del navegador ni redirección.
+13. **La fecha de la edición se escribe con JS.** Sin JavaScript queda el texto estático «Edición de
+    hoy» / «Today's edition».
 
 ### Técnicas
 
-13. **Lógica duplicada.** `app.js` y `en/app.js` son copias con textos distintos. Un arreglo en uno no
-    llega al otro; ya hay pequeñas diferencias de opciones por defecto y comentarios.
-14. **Acoplamiento fuerte al DOM por ID.** Un ID renombrado provoca un `TypeError` al arrancar y deja
+14. **Lógica duplicada.** `app.js` y `en/app.js` son copias con textos distintos. Un arreglo en uno no
+    llega al otro; ya hay pequeñas diferencias de comentarios.
+15. **Acoplamiento fuerte al DOM por ID.** Un ID renombrado provoca un `TypeError` al arrancar y deja
     la página sin funcionalidad (no hay manejo de errores de inicialización).
-15. **Sin tests automatizados ni linting.** Las regresiones se detectan a mano, y ahora hay que probar
-    dos versiones.
-16. **`localStorage` falla en silencio.** Si está bloqueado, el usuario no sabe que no se guardará nada.
-17. **Historial sin validar longitud ni formato de color al cargar.** Se comprueba que `label` y
+16. **Sin tests automatizados ni linting.** Las regresiones se detectan a mano, y ahora hay que probar
+    dos versiones, dos temas y varios anchos.
+17. **`localStorage` falla en silencio.** Si está bloqueado, el usuario no sabe que no se guardará nada;
+    el tema se resuelve siguiendo el sistema en cada carga.
+18. **Historial sin validar longitud ni formato de color al cargar.** Se comprueba que `label` y
     `color` sean strings, pero una etiqueta de miles de caracteres o un color inválido pueden romper
     el diseño (no ejecutan código).
-18. **`color-mix()` y `backdrop-filter`** requieren navegadores recientes; sin ellos se pierde el
-    resplandor del resultado o parte del efecto cristal.
-19. **El canvas no es enfocable** (`role="img"` + `click`), aunque el botón central ofrece la misma
-    acción por teclado.
-20. **Objetivos táctiles pequeños** en los botones `×` (26×26 px) y en los de cabecera (38×38 px).
-21. **El `h1` con degradado y `color: transparent`** puede desaparecer en modo de alto contraste.
+19. **`color-mix()`** requiere navegadores recientes. Sin él, el filete del veredicto usa el color puro
+    de la porción; no hay otros efectos dependientes.
+20. **El canvas no es enfocable** (`role="img"` + `click`), aunque el botón central ofrece la misma
+    acción por teclado. Las etiquetas tampoco son texto seleccionable ni traducible.
+21. **Objetivos táctiles ajustados** en los botones `×` (32×32 px) y en los de cabecera (40×40 px en
+    escritorio, 38×38 px en móvil).
 22. **El estado «Girando»/«Spinning» no es `aria-live`**; solo se anuncia el valor final.
 23. **Animación ligada a `requestAnimationFrame` y al reloj.** En pestañas en segundo plano el giro se
     pausa y termina al volver; no hay control de pausa.
-24. **Coste visual en móviles modestos** por blur, sombras y `backdrop-filter`.
+24. **Coste visual en móviles modestos** por las sombras de la lámina y el canvas a DPR 2. No hay
+    `backdrop-filter` ni halos que agraven el pintado.
 25. **Sin `og:image`** pese a existir `preview.png`; al compartir no se muestra miniatura.
 26. **Sin service worker.** No hay instalación como PWA ni garantía de funcionamiento offline tras
     limpiar caché.
 27. **`hreflang` incompleto para producción.** Son rutas relativas (`index.html`, `en/index.html`), no
     URLs absolutas, y no hay `x-default` ni `canonical`. Los buscadores pueden ignorarlas o resolverlas
     de forma ambigua.
+28. **Fuentes locales, no un CDN.** Son ~190 KB en total; la primera visita descarga las dos latinas
+    precargadas (~71 KB) y el resto solo si aparece texto que las necesite.
 
 ## 3. Robustez y seguridad
 
@@ -84,7 +95,8 @@
 | `Math.random` | No criptográfico; aceptable para ocio, no para apuestas |
 | Manipulación de `localStorage` | El usuario puede editar los datos; se renderizan como texto, pero no se validan longitudes del historial |
 | Dependencias | Ninguna; superficie de suministro nula |
-| CSP | Compatible con `default-src 'self'`; el favicon requiere `img-src data:` |
+| CSP | Compatible con `default-src 'self'`; el favicon requiere `img-src data:` y el script de tema un *hash* o `'unsafe-inline'` |
+| Preferencia de tema | Se valida al leerla (`day`/`night`); cualquier otro valor cae al sistema |
 
 ## 4. Mejoras propuestas
 
@@ -93,13 +105,13 @@
 1. **Eliminar la duplicación de lógica.** Extraer un módulo compartido (`wheel.js`, `state.js`,
    `audio.js`) con un pequeño build, o al menos unificar mediante un objeto de textos (`i18n.js`).
 2. **Tests de humo automatizados** con Playwright para ambas páginas: cargar, añadir, girar, persistir,
-   resetear y cambiar de idioma.
-3. **Sincronización entre pestañas** con `window.addEventListener("storage", …)` y recarga de estado.
+   resetear, cambiar de idioma y alternar tema.
+3. **Sincronización entre pestañas** con `window.addEventListener("storage", …)` y recarga de estado,
+   incluido el tema.
 4. **Accesibilidad**:
    - Aumentar los botones `×` a ≥ 44 px o añadir área táctil.
    - Añadir `aria-live` al estado del giro o un `aria-describedby` con la pista.
-   - Soportar `forced-colors: active` (color sólido para el `h1`).
-   - Verificar contraste de footer, placeholders y textos vacíos en ambos idiomas.
+   - Revisar el contraste del pie, placeholders y textos vacíos en ambos temas.
 5. **Validar el historial al cargar**: recortar etiquetas a 40 caracteres y aceptar solo colores
    `#rgb`/`#rrggbb` (o caer a un color por defecto).
 6. **Completar SEO bilingüe**: `hreflang` absolutos, `x-default`, `canonical` y `og:image` con
@@ -118,7 +130,8 @@
     manual (cookie o `localStorage`).
 14. **PWA** con service worker y manifiesto para uso offline instalado.
 15. **Preferencia de movimiento reactiva** con `matchMedia(...).addEventListener("change", …)`.
-16. **Tema claro** y tokens para todos los colores literales.
+16. **Tercer tema o acentos por estación** (por ejemplo, una variante sepia) reutilizando los tokens;
+    y eliminar los colores literales que quedan en sombras y en el canvas.
 
 ### Prioridad baja / refactor
 
@@ -127,6 +140,8 @@
 19. Adoptar un sistema i18n real (archivos de mensajes, plurales, formato) para añadir idiomas sin
     duplicar JS.
 20. Añadir `manifest.webmanifest`, iconos y meta `apple-touch-icon`.
+21. Generar `en/app.js` desde `app.js` con un script versionado en el repositorio, en lugar de
+    mantener dos copias a mano.
 
 ## 5. Cómo extender: cuatro recetas
 
@@ -159,9 +174,11 @@
 
 1. Crear `xx/index.html` copiando uno existente y traduciendo textos/metadatos; ajustar `lang`,
    `hreflang`, `og:locale` y los enlaces de idioma de **todas** las páginas.
-2. Crear `xx/app.js` con textos, `DEFAULT_OPTIONS` y una `STORAGE_KEY` propia.
+2. Crear `xx/app.js` con textos, `DEFAULT_OPTIONS` y una `STORAGE_KEY` propia. El tema se comparte:
+   usa la misma `THEME_KEY`.
 3. Añadir el enlace `.lang-switch` en las tres cabeceras.
-4. Verificar que `styles.css` se referencia correctamente (`../../styles.css` si hay dos niveles).
+4. Verificar que `styles.css` y las fuentes se referencian correctamente (`../../styles.css` y
+   `../assets/fonts/` si hay dos niveles).
 5. Actualizar `hreflang` recíprocos y este documento.
 6. **Mejor:** extraer primero la lógica común para no triplicar el código.
 
@@ -176,7 +193,8 @@
 | Estado | Variables de módulo, sin clases; mutación directa con guardas `if (spinning)` |
 | DOM | `els` centralizado; creación con `createElement` + `textContent` |
 | CSS | kebab-case, BEM ligero (`option__label`, `result__value`), secciones comentadas |
-| Tokens | Prefijo `--`, en `:root`; algunos colores siguen literales |
+| Tokens | Prefijo `--`, en `:root` (día) y `[data-theme="night"]`; nunca una clase `.dark` |
+| Temas | El atributo `data-theme` vive en `<html>`; los colores del canvas salen de `THEMES` |
 | Comentarios | Solo cabeceras de sección y aclaraciones puntuales; el código es autoexplicativo |
 | Accesibilidad | `aria-label` en botones icónicos, `aria-hidden` en decoración, foco visible |
 | Paridad ES/EN | Todo cambio funcional se aplica a los dos JS; los textos, a los dos HTML |
@@ -185,21 +203,25 @@
 
 | Comprobación | Resultado |
 | --- | --- |
-| Las cinco piezas existen y las rutas relativas son correctas | ✅ |
-| IDs usados por `els` existen en ambos HTML | ✅ (20/20 en cada uno) |
+| Las piezas de la app existen y las rutas relativas son correctas | ✅ HTML, CSS, JS y seis woff2 |
+| IDs usados por `els` existen en ambos HTML | ✅ (23/23 en cada uno) |
 | No hay dependencias, imports ni peticiones de red | ✅ |
-| `localStorage` se lee al inicio y se escribe tras cada cambio | ✅ |
-| Claves separadas por idioma | ✅ (`ruleta-de-la-suerte:v1`, `spin-the-wheel:v1`) |
+| `localStorage` se lee al inicio y se escribe tras cada cambio | ✅ opciones, historial, silencio y tema |
+| Claves separadas por idioma y tema compartido | ✅ (`ruleta-de-la-suerte:v1`, `spin-the-wheel:v1`, `ruleta-theme`) |
 | Límites 20 opciones / 40 caracteres / 12 historial / 10 visibles | ✅ en ambos JS |
 | Movimiento reducido aplicado en CSS y JS | ✅ |
+| Tema día/noche, conmutador y respeto a `prefers-color-scheme` | ✅ en ambos idiomas; sin destello inicial |
+| Contraste de las etiquetas del canvas | ✅ peor par 4,65:1 en ambos temas |
 | Sintaxis de ambos JS | ✅ `node --check` |
-| Rutas HTTP `/`, `/en/`, `styles.css` y `en/app.js` | ✅ 200 con un servidor local |
+| Rutas HTTP `/`, `/en/`, `styles.css`, `en/app.js` y fuentes | ✅ 200 con un servidor local |
 | `hreflang` y `og:locale` en ambas páginas | ✅ (rutas relativas) |
 | Enlace de idioma recíproco | ✅ (`en/index.html` ↔ `../index.html`) |
-| Repositorio git | ✅ inicializado; historial con ES, EN, documentación y enlace desde el README |
+| Revisión visual en Chrome | ✅ 1440×1000, 820 y 390/320 px; día, noche, resultado y estado vacío; ES y EN |
+| Desbordamiento horizontal | ✅ ninguno en los anchos probados |
+| Detector Impeccable | ✅ informe limpio salvo `italic-serif-display`, excepción registrada del brief editorial |
 | Tests / lint / CI | ⚠️ Ausentes |
-| README coherente con el número de archivos | ✅ lista las cinco piezas y enlaza a `doc/` |
-| Documentación | `doc/` completa, enlazada desde el README |
+| Documentación | `doc/` completa, enlazada desde el README; `DESIGN.md` y `PRODUCT.md` en la raíz |
 
-Las afirmaciones de este documento se basan en la lectura del código, no en la ejecución en un
-navegador. Antes de un cambio grande, valida el plan de pruebas del documento 06 en ambos idiomas.
+La verificación visual se hizo con Chrome headless (capturas en `.impeccable/review/`) y el detector
+Impeccable sobre `/` y `/en/` en ambos temas. Antes de un cambio grande, repite el plan de pruebas del
+documento 06 en los dos idiomas.

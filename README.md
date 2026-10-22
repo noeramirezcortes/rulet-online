@@ -2,14 +2,15 @@
 
 Aplicación web de una ruleta aleatoria, hecha con HTML, CSS y JavaScript puro. No necesita instalación, compilación ni dependencias: son archivos estáticos listos para subir a cualquier hosting.
 
-![Vista de la ruleta](preview.png)
+![La ruleta en modo día](preview.png)
 
 ## Funciones
 
 - Ruleta animada con física de frenado suave y sonido de tics (se puede silenciar).
-- Opciones editables: añadir, eliminar, mezclar y restablecer.
-- Resultado destacado, confeti y historial de los últimos resultados.
-- Persistencia en `localStorage`: las opciones y el historial se conservan al recargar.
+- Opciones editables: añadir, eliminar, barajar y restablecer.
+- Resultado destacado, confeti de papel e historial de los últimos veredictos.
+- Dos temas, día y noche, con conmutador y preferencia guardada. La primera visita sigue el tema del sistema.
+- Persistencia en `localStorage`: opciones, historial, sonido y tema se conservan al recargar.
 - Atajos de teclado: `Espacio` para girar, `Enter` para añadir una opción.
 - Diseño responsive para móvil, tableta y escritorio.
 - Accesible: navegación por teclado, foco visible, etiquetas ARIA y respeto a `prefers-reduced-motion`.
@@ -18,13 +19,16 @@ Aplicación web de una ruleta aleatoria, hecha con HTML, CSS y JavaScript puro. 
 ## Archivos
 
 ```
-index.html       Estructura y contenido (español)
-en/index.html    Estructura y contenido (inglés)
-styles.css       Diseño y animaciones (compartido)
-app.js           Lógica de la ruleta (español)
-en/app.js        Lógica de la ruleta (inglés)
-doc/             Documentación funcional y técnica
-preview.png      Captura de la interfaz
+index.html          Estructura y contenido (español)
+en/index.html       Estructura y contenido (inglés)
+styles.css          Sistema visual, temas y animaciones (compartido)
+app.js              Lógica de la ruleta (español)
+en/app.js           Lógica de la ruleta (inglés)
+assets/fonts/       Bodoni Moda y Karla autoalojadas (woff2)
+doc/                Documentación funcional y técnica
+DESIGN.md           Sistema visual: tokens, tipografía y componentes
+PRODUCT.md          Propósito, público y criterios de producto
+preview.png         Captura de la interfaz
 ```
 
 La documentación detallada del proyecto está en [`doc/README.md`](doc/README.md).
@@ -52,17 +56,18 @@ Es un sitio 100 % estático. Cualquiera de estas opciones funciona:
 - **Vercel**: importa el repositorio y despliega sin configuración adicional.
 - **Cualquier hosting compartido**: sube todo el contenido del repositorio por FTP a la carpeta pública.
 
-La versión en inglés vive en la carpeta `en/` y usa la misma hoja de estilos: al desplegar, queda disponible en `https://tu-dominio.com/en/`.
+La versión en inglés vive en la carpeta `en/`. Al desplegar, queda disponible en `https://tu-dominio.com/en/` y comparte `styles.css` y `assets/fonts/` con la versión española.
 
 ## Personalización
 
 En `app.js` puedes cambiar:
 
 - `DEFAULT_OPTIONS`: las opciones que aparecen la primera vez.
-- `PALETTE`: los colores de las porciones.
+- `THEMES`: las paletas de día y noche que usan la ruleta, los puntos y el confeti.
+- `COPY`: todos los textos de la interfaz.
 - `MAX_OPTIONS`: el límite de opciones (20 por defecto).
 - `STORAGE_KEY`: la clave usada para guardar en el navegador.
 
 En `en/app.js` están los mismos ajustes para la versión en inglés, con su propia `STORAGE_KEY` para que cada idioma conserve sus opciones por separado.
 
-En `styles.css`, las variables de `:root` controlan colores, tipografía y radios.
+En `styles.css`, los tokens de `:root` definen la edición de día y `[data-theme="night"]` la de noche: papel, tinta, bermellón, filetes, sombras y tipografías. La estructura y los componentes usan esos tokens, así que un cambio de paleta afecta a ambos temas y a los dos idiomas.

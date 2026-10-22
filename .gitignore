@@ -12,3 +12,6 @@ skills-lock.json
 # Pruebas locales
 _*-test.html
 *.log
+
+# Capturas de revisión (se regeneran; no forman parte del sitio)
+.impeccable/review/

@@ -1,0 +1,18 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "italic-serif-display",
+        "value": "*",
+        "files": [
+          "en/index.html",
+          "index.html"
+        ],
+        "createdAt": "2026-10-21T23:42:39.880Z",
+        "reason": "User-approved almanac direction: italic vermilion display word is the brief's signature"
+      }
+    ]
+  }
+}

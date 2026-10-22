@@ -12,7 +12,8 @@
 | Persistencia | `localStorage` | Una clave por idioma, mismo esquema |
 | Build | Ninguno | Sin transpilación, bundler, minificado ni tests |
 
-**No hay dependencias externas.** Tampoco se usan fuentes web, CDN, service worker ni `fetch`.
+**No hay dependencias externas.** Las tipografías se sirven desde `assets/fonts/`; no hay CDN,
+service worker ni `fetch`.
 
 ## 2. Estructura del repositorio
 
@@ -24,10 +25,13 @@ herraminetasweb/
 │  ├─ index.html       Documento inglés
 │  └─ app.js           Lógica inglesa (copia traducida)
 ├─ styles.css          Estilos compartidos por ambos idiomas
-├─ preview.png         Captura 1440×1200 usada en el README
+├─ assets/fonts/       Bodoni Moda y Karla autoalojadas (6 woff2)
+├─ preview.png         Captura 1440×1312 usada en el README
 ├─ README.md           Guía breve de uso y personalización
+├─ PRODUCT.md          Verdad de producto
+├─ DESIGN.md           Sistema visual y tokens
 ├─ .gitignore          Excluye skills de agentes, logs y pruebas locales
-├─ .git/               Repositorio git (rama main)
+├─ .git/               Repositorio git
 ├─ skills-lock.json    Registro de la skill de agentes (no es parte de la app)
 ├─ doc/                Esta documentación
 ├─ .agents/ .devin/ .vibe/
@@ -35,8 +39,8 @@ herraminetasweb/
 └─ (sin package.json, sin tests)
 ```
 
-La aplicación se compone de **cinco archivos**: dos HTML, dos JS y un CSS. `preview.png`, `README.md`
-y las carpetas de skills son accesorios.
+La aplicación se compone de **cinco archivos**: dos HTML, dos JS y un CSS, más las fuentes
+autoalojadas. `preview.png`, los documentos de producto/diseño y las carpetas de skills son accesorios.
 
 ## 3. Separación de responsabilidades
 
@@ -50,11 +54,12 @@ index.html (ES)                 en/index.html (EN)
   └─ <link styles.css>                └─ <link ../styles.css>
 
 styles.css (compartido)
-  ├─ :root con tokens de diseño
+  ├─ :root (día) y [data-theme="night"] con tokens de diseño
+  ├─ @font-face de Bodoni Moda y Karla
   ├─ estados visuales dirigidos por clases/atributos que pone JS
   │   (.is-spinning, .is-win, .is-pop, .is-visible, [data-state], [aria-pressed])
-  ├─ componentes de cabecera: .topbar__actions, .lang-switch
-  └─ media queries (960px, 560px, prefers-reduced-motion)
+  ├─ componentes de cabecera: .masthead__actions, .lang-link
+  └─ media queries (1020px, 640px, prefers-reduced-motion, forced-colors)
 
 app.js (ES)  ≈  en/app.js (EN)
   ├─ localiza elementos por ID (objeto `els`)
@@ -77,24 +82,28 @@ En cambio, cada JS lleva sus propios textos, opciones por defecto y clave de alm
 - **Atributos de estado**: `#resultCard[data-state]`, `.wheel.is-spinning`, `.result.is-pop`,
   `.result__value.is-win`, `.toast.is-visible`, `#soundBtn[aria-pressed]`.
 - **Variables CSS inyectadas**: `--c` (punto de color de opción/chip) y `--win` (color del resultado).
-- **Enlace de idioma**: `.lang-switch` es HTML estático; JS no lo toca.
+- **Enlace de idioma**: `.lang-link` es HTML estático; JS no lo toca. El tema se refleja en
+  `html[data-theme]` y en `#themeBtn[aria-pressed]`.
 
 ## 4. Módulos internos de cada `app.js`
 
-Ambos archivos comparten la misma estructura y numeración de secciones (verificado: las diferencias
-son textos, comentarios, `STORAGE_KEY` y algunas opciones por defecto):
+Ambos archivos comparten la misma estructura y orden de secciones (verificado: las diferencias son
+textos, comentarios, `STORAGE_KEY` y algunas opciones por defecto). La numeración siguiente es la de
+`app.js`; en `en/app.js` las mismas secciones están tres líneas antes:
 
 | Líneas | Sección | Responsabilidad |
 | --- | --- | --- |
-| 1–63 | Arranque | `"use strict"`, constantes, referencias DOM, contextos de canvas, estado |
-| 65–94 | Utilidades | `normalize`, `toast`, `colorsFor`, `getIndexAtPointer` |
-| 96–130 | Persistencia | `loadState`, `saveState` |
-| 132–189 | Sonido | `getAudio`, `playTick`, `playFanfare`, `updateSoundUI` |
-| 191–334 | Dibujo de la ruleta | `drawHubDisc`, `fitLabel`, `draw`, `resizeWheel` |
-| 336–414 | Confeti | `resizeFx`, `burstConfetti`, `stepConfetti` |
-| 416–512 | Giro | `finishSpin`, `spin` |
-| 514–645 | Interfaz | `syncControls`, `renderOptions`, `renderHistory`, CRUD y reset |
-| 647–697 | Eventos e inicio | Listeners, `ResizeObserver` e inicialización |
+| 1–78 | Arranque | `"use strict"`, constantes, `COPY`, `THEMES` |
+| 80–124 | Referencias y estado | `els`, contextos de canvas, variables de módulo |
+| 126–182 | Utilidades y color | `normalize`, `currentTheme`, `palette`, `luminance`, `contrast`, `labelColor`, `toast`, `colorsFor`, `getIndexAtPointer` |
+| 184–226 | Persistencia | `loadState`, `saveState` |
+| 227–257 | Tema | `syncThemeUI`, `setTheme`, `toggleTheme` |
+| 258–316 | Sonido | `getAudio`, `playTick`, `playFanfare`, `updateSoundUI` |
+| 317–446 | Dibujo de la ruleta | `fitLabel`, `drawTicks`, `draw`, `resizeWheel` |
+| 447–524 | Confeti | `resizeFx`, `burstConfetti`, `stepConfetti` |
+| 525–622 | Giro | `finishSpin`, `spin` |
+| 623–753 | Interfaz | `syncControls`, `renderOptions`, `renderHistory`, CRUD y reset |
+| 754–824 | Eventos e inicio | Listeners, `ResizeObserver`, `matchMedia` e inicialización |
 
 No hay clases ni prototipos: son funciones y variables de módulo. Esto es intencional (ver documento 07).
 
@@ -107,6 +116,7 @@ No hay clases ni prototipos: son funciones y variables de módulo. Esto es inten
 | `rotation` | `number` (radianes) | `0` | `spin` (por frame) | No |
 | `spinning` | `boolean` | `false` | `spin`, `finishSpin` | No |
 | `muted` | `boolean` | `false` | botón de sonido, `loadState` | Sí |
+| tema | `"day" \| "night"` | script del `<head>` | `setTheme`, `toggleTheme`, `matchMedia` | Sí (`ruleta-theme`) |
 | `wheelSize` | `number` (px CSS) | `0` | `resizeWheel` | No |
 | `dpr` | `number` | `1` | `resizeWheel` | No |
 | `fxDpr` | `number` | `1` | `resizeFx` | No |
@@ -115,9 +125,9 @@ No hay clases ni prototipos: son funciones y variables de módulo. Esto es inten
 | `toastTimer` | `number` | `0` | `toast` | No |
 | `audio` | `AudioContext \| null` | `null` | `getAudio` | No |
 
-Constantes relevantes: `TAU`, `STORAGE_KEY`, `MAX_OPTIONS`, `REDUCED`, `FONT`, `DEFAULT_OPTIONS`,
-`PALETTE`. La única diferencia de configuración entre idiomas es `STORAGE_KEY` y el contenido de
-`DEFAULT_OPTIONS`/textos.
+Constantes relevantes: `TAU`, `STORAGE_KEY`, `THEME_KEY`, `MAX_OPTIONS`, `REDUCED`, `FONT`,
+`DEFAULT_OPTIONS`, `COPY` y `THEMES`. La única diferencia de configuración entre idiomas es
+`STORAGE_KEY` y el contenido de `DEFAULT_OPTIONS`/`COPY`.
 
 ## 6. Flujo de arranque
 
@@ -128,13 +138,15 @@ La página correspondiente se carga (ES o EN)
        2. loadState()
             ├─ éxito → options/history/muted desde la clave de ese idioma
             └─ false  → options = DEFAULT_OPTIONS del idioma
-       3. updateSoundUI()        → aria-pressed + etiqueta del botón
-       4. renderOptions()        → lista DOM + aria-label del canvas + draw() + syncControls()
-       5. renderHistory()        → chips + visibilidad del mensaje vacío
-       6. resizeFx()             → tamaño del canvas de confeti
-       7. resizeWheel()          → tamaño real + DPR + draw()
-       8. syncControls()         → habilita/deshabilita controles
-       9. registra listeners y ResizeObserver
+       3. escribe la fecha editorial en #issueDate
+       4. updateSoundUI()        → aria-pressed + etiqueta del botón
+       5. syncThemeUI()          → aria-pressed del tema + theme-color
+       6. renderOptions()        → lista DOM + aria-label del canvas + draw() + syncControls()
+       7. renderHistory()        → chips + visibilidad del mensaje vacío
+       8. resizeFx()             → tamaño del canvas de confeti
+       9. resizeWheel()          → tamaño real + DPR + draw()
+      10. syncControls()         → habilita/deshabilita controles
+      11. registra listeners y ResizeObserver
 ```
 
 `draw()` sale inmediatamente si `wheelSize === 0`; por eso el primer dibujo efectivo ocurre en
@@ -162,7 +174,7 @@ spin()
               ├─ escribe resultado y color, data-state="done", animación is-pop
               ├─ history.unshift + recorte a 12 + renderHistory + saveState
               ├─ playFanfare() + burstConfetti()
-              └─ scrollIntoView si la tarjeta quedó fuera de pantalla
+              └─ scrollIntoView si el pliego quedó fuera de pantalla
 ```
 
 Con `prefers-reduced-motion: reduce` (leído **una vez** al cargar): 2 vueltas, 650 ms, sin confeti y
@@ -195,10 +207,12 @@ lo que evita inyección de HTML con las etiquetas del usuario.
 | `#shuffleBtn` | `click` | `shuffleOptions()` |
 | `#resetBtn` | `click` | `resetAll()` (con `confirm`) |
 | `#soundBtn` | `click` | alterna `muted`, actualiza UI, guarda y suena un tick al reactivar |
+| `#themeBtn` | `click` | `toggleTheme()`; guarda `ruleta-theme` y redibuja la paleta |
 | `window` | `keydown` | `Espacio` → `spin()` salvo en campos editables o en botones distintos del de girar |
 | `window` | `resize` | `resizeWheel()` + `resizeFx()` |
 | `#wheelCanvas` | `ResizeObserver` | `resizeWheel()` |
-| `.lang-switch` | navegación | Cambia de documento (ES ↔ EN); sin listener de JS |
+| `matchMedia("(prefers-color-scheme: dark)")` | `change` | Cambia el tema si no hay preferencia guardada |
+| `.lang-link` | navegación | Cambia de documento (ES ↔ EN); sin listener de JS |
 | Botones `×` de cada opción | `click` | `removeOption(index)` (se reenganchan al reconstruir la lista) |
 
 No hay listeners de `storage`, `visibilitychange`, `beforeunload` ni gestos táctiles.
@@ -208,16 +222,16 @@ No hay listeners de `storage`, `visibilitychange`, `beforeunload` ni gestos tác
 `draw()` se ejecuta en cada frame del giro y en cada cambio de tamaño/opciones:
 
 1. Ajusta la transformación al DPR (`ctx.setTransform(dpr, …)`) y limpia.
-2. Centra el contexto en `(W/2, W/2)`.
-3. Si no hay opciones: círculo discontinuo + hub + borde y termina.
+2. Centra el contexto en `(W/2, W/2)` y dibuja las 144 marcas de graduación.
+3. Si no hay opciones: círculo discontinuo y termina.
 4. Calcula `segment = TAU / n`, colores y tamaño de fuente adaptativo.
-5. Pinta cada porción como un sector (`moveTo(0,0)`, `arc`, `closePath`, `fill`).
-6. Recorta al círculo y aplica un degradado radial de luz/sombra y las líneas separadoras.
-7. Dibuja las etiquetas rotadas: `rotate(ángulo central)`, `translate(R*0.92, 0)`, alineadas a la
-   derecha, recortadas con `fitLabel` si no caben.
-8. Dibuja el disco central (hub), el borde exterior y restaura el contexto.
+5. Pinta cada porción como un sector plano (`moveTo(0,0)`, `arc`, `closePath`, `fill`).
+6. Dibuja los separadores finos en color papel.
+7. Dibuja las etiquetas rotadas, con la tinta de mayor contraste, recortadas con `fitLabel` si no
+   caben; las de la mitad izquierda giran 180°.
+8. Dibuja el aro exterior y restaura el contexto.
 
-El puntero **no** se dibuja en canvas: es un `div.pointer` con `clip-path` en el HTML.
+El hub y el puntero **no** se dibujan en canvas: son HTML/CSS (`.hub` y `.pointer`).
 
 ### Redimensionado
 
@@ -228,16 +242,16 @@ no hace nada.
 ## 11. Confeti (pipeline)
 
 - Canvas `#fx` fijo a viewport, `pointer-events: none`, `z-index: 50`.
-- `burstConfetti()` crea partículas desde el centro de la ruleta, con velocidad y ángulo aleatorios,
-  gravedad (`vy += 0.28`), rozamiento, rotación y vida decreciente.
-- `stepConfetti()` limpia, integra física, elimina partículas muertas o fuera de pantalla por abajo
-  y dibuja rectángulos o círculos con `globalAlpha`.
+- `burstConfetti()` crea 100 flecos (60 en móvil) desde el centro de la ruleta, con velocidad y ángulo
+  aleatorios, gravedad (`vy += 0.24`), rozamiento, rotación y vida decreciente.
+- `stepConfetti()` limpia, integra física, elimina partículas muertas o fuera de pantalla por abajo y
+  dibuja rectángulos de papel con `globalAlpha` y escorzo.
 - Un solo `requestAnimationFrame` activo a la vez; se detiene y limpia al no quedar partículas.
 - Se omite por completo con movimiento reducido.
 
 ## 12. Sonido
 
-Grafo por tick: `OscillatorNode(square, 740–1300 Hz)` → `GainNode` (envolvente 0.032 → 0, 50 ms) →
+Grafo por tick: `OscillatorNode(square, 740–1300 Hz)` → `GainNode` (envolvente 0.026 → 0, 50 ms) →
 `destination`. La fanfarria crea cuatro osciladores triangulares (C5, E5, G5, C6) separados 85 ms.
 
 El `AudioContext` se crea de forma perezosa en el primer gesto (girar o reactivar sonido) para cumplir
@@ -252,9 +266,9 @@ las políticas de autoplay. Si el contexto está suspendido, se reanuda.
 - restablecer,
 - alternar sonido.
 
-Cada página escribe en **su** clave (`ruleta-de-la-suerte:v1` o `spin-the-wheel:v1`). No hay guardado
-periódico ni *debounce*; el volumen de datos es mínimo. Detalle en
-[04 · Persistencia](04-persistencia.md).
+Cada página escribe en **su** clave (`ruleta-de-la-suerte:v1` o `spin-the-wheel:v1`). El tema se
+guarda aparte, en `ruleta-theme`, y lo comparten ambos idiomas. No hay guardado periódico ni
+*debounce*; el volumen de datos es mínimo. Detalle en [04 · Persistencia](04-persistencia.md).
 
 ## 14. Limitaciones estructurales
 

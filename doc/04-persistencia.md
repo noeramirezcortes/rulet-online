@@ -5,9 +5,9 @@
 | Aspecto | Valor |
 | --- | --- |
 | API | `window.localStorage` |
-| Claves | `ruleta-de-la-suerte:v1` (ES) · `spin-the-wheel:v1` (EN) |
-| Formato | JSON de un solo objeto por idioma |
-| Se guarda | Opciones, historial y silencio |
+| Claves | `ruleta-de-la-suerte:v1` (ES) · `spin-the-wheel:v1` (EN) · `ruleta-theme` (compartida) |
+| Formato | JSON de un solo objeto por idioma; el tema es una cadena suelta |
+| Se guarda | Opciones, historial, silencio y tema |
 | No se guarda | Resultado actual, rotación, confeti, estado `spinning` |
 | Alcance | Por origen (esquema + dominio + puerto) y por navegador/perfil |
 | Caducidad | Ninguna; persiste hasta que se borre |
@@ -17,7 +17,8 @@
 
 Las páginas `/` y `/en/` comparten el mismo **origen** (mismo dominio y puerto) y, por tanto, el mismo
 almacén de `localStorage`. Lo que las separa es la clave: son dos registros independientes dentro del
-mismo almacén.
+mismo almacén. El tema es la excepción: usa una sola clave (`ruleta-theme`) y se comparte entre ambos
+idiomas.
 
 ## 2. Esquema
 
@@ -53,9 +54,13 @@ sobrecarga ≈ **1,5 KB**. No hay riesgo de cuota.
 | `index.html` | `es` | `ruleta-de-la-suerte:v1` | Pizza, Sushi, Hamburguesa, Tacos, Ensalada, Pasta, Ramen, Helado |
 | `en/index.html` | `en` | `spin-the-wheel:v1` | Pizza, Sushi, Burger, Tacos, Salad, Pasta, Ramen, Ice cream |
 
+Además, ambas páginas comparten `ruleta-theme`, que guarda `"day"` o `"night"`. Si la clave no existe,
+la primera visita sigue `prefers-color-scheme`; si existe, manda la elección del usuario.
+
 Consecuencias:
 
 - Cambiar de idioma **no** migra ni comparte opciones, historial ni silencio.
+- El **tema sí se comparte**: alternarlo en español se ve al pasar a inglés.
 - Se puede tener una lista en español y otra distinta en inglés en el mismo navegador.
 - Borrar una clave no afecta a la otra.
 - Si en el futuro se unifica la clave, habría que decidir qué datos prevalecen y migrarlos.
@@ -72,15 +77,20 @@ Consecuencias:
 | Mezclar | `shuffleOptions` |
 | Restablecer | `resetAll` |
 | Activar/silenciar sonido | listener de `#soundBtn` |
+| Alternar tema | `setTheme(theme, true)` desde el listener de `#themeBtn` |
 
 No se guarda durante el giro (solo al final), ni al cambiar el tamaño de ventana, ni al mostrar toasts.
 Tampoco hay guardado por inactividad ni `beforeunload`.
 
 ## 5. Cuándo se lee
 
-Una sola vez al arrancar la página, en `loadState()` (`app.js:98` / `en/app.js:98`), usando la clave
+Una sola vez al arrancar la página, en `loadState()` (`app.js:186` / `en/app.js:183`), usando la clave
 del idioma correspondiente. No se vuelve a leer después. Si otra pestaña modifica los datos, esta
 pestaña no se enterará hasta recargar.
+
+El tema se lee antes de pintar, en el script inline del `<head>`, y otra vez en `setTheme`/`init` para
+sincronizar el botón. `matchMedia("(prefers-color-scheme: dark)")` se escucha en caliente: si el sistema
+cambia y no hay preferencia guardada, la página cambia de tema sin recargar.
 
 ## 6. Saneado y casos límite
 
@@ -97,13 +107,16 @@ pestaña no se enterará hasta recargar.
 | Color de historial inválido | Se acepta como variable CSS; el punto puede quedar sin color, sin ejecutar código |
 | `muted` ausente | `false` (sonido activo) |
 | `muted` con valor no booleano | Se convierte con `Boolean()` |
+| `ruleta-theme` ausente | Se sigue `prefers-color-scheme` del sistema |
+| `ruleta-theme` con valor distinto de `day`/`night` | Se ignora y se sigue el sistema |
+| `localStorage` bloqueado | El tema dura la visita y se resuelve siguiendo el sistema |
 | Datos de una versión futura | No hay migración; se intentan leer con las reglas actuales |
 
 ## 7. Reset y borrado
 
 - **Botón «Restablecer» / «Reset»**: pide confirmación, restaura las 8 opciones de ejemplo de ese
   idioma, vacía el historial y guarda el nuevo estado. La clave **no** se elimina. El silencio
-  (`muted`) **se conserva**.
+  (`muted`) y el tema **se conservan**.
 - **Borrado manual** desde DevTools:
 
 ```js
@@ -119,6 +132,10 @@ location.reload();
 localStorage.removeItem("ruleta-de-la-suerte:v1");
 localStorage.removeItem("spin-the-wheel:v1");
 location.reload();
+
+// Volver al tema del sistema (borra la preferencia)
+localStorage.removeItem("ruleta-theme");
+location.reload();
 ```
 
 - **Borrar datos del navegador**: también elimina estas claves, junto con el resto del sitio.
@@ -127,7 +144,8 @@ location.reload();
 
 ## 8. Exportar / importar (recetas)
 
-No hay función de exportación en la interfaz, pero el formato es JSON trivial:
+No hay función de exportación en la interfaz, pero el formato es JSON trivial. El tema no forma parte
+de este JSON: vive en la clave aparte `ruleta-theme`.
 
 ```js
 // Exportar el idioma actual (ejecutar en esa página)
@@ -159,3 +177,5 @@ Estrategias al cambiar el esquema:
    probar los casos corruptos.
 
 Si se renombra una clave, conviene actualizar este documento, el README y el plan de pruebas.
+`ruleta-theme` no lleva versión: es un único valor `day`/`night` y cualquier cambio de formato debe
+tratarse como valor inválido (se ignora y se sigue el sistema).

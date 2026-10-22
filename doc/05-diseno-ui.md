@@ -2,115 +2,149 @@
 
 ## 1. Intención visual
 
-Tema oscuro casi negro (`#080a14`) con acentos violeta, rosa y verde agua. La composición es una
-tarjeta de cristal sobre un fondo con degradados radiales y una retícula sutil. La ruleta es el foco:
-grande, con halo violeta, sombra profunda y un botón central luminoso. El panel lateral usa tarjetas
-translúcidas con `backdrop-filter`.
+La página se plantea como la lámina de un almanaque impreso: papel marfil de día, la misma página
+impresa en tinta de noche. Un cabecero con fecha, filetes de uno y tres hilos, tinta bermellón como
+único grito y una didone grande para el titular y el veredicto. La ruleta ocupa el lugar de la
+figura principal, con marcas de graduación y porciones en tintas planas; el panel derecho es una
+columna editorial de filetes, no una tarjeta de cristal.
+
+No hay degradados en el texto, halos, `backdrop-filter` ni filtros de grano. La calidez viene del
+papel, la tinta y el bermellón.
 
 La misma hoja `styles.css` se usa en español (`/`) y en inglés (`/en/`); `en/index.html` la referencia
-como `../styles.css`. Por tanto, el diseño es idéntico en ambos idiomas salvo los textos.
+como `../styles.css`. El diseño es idéntico en ambos idiomas salvo los textos.
 
-No hay modo claro ni `prefers-color-scheme`; el `<meta name="color-scheme" content="dark">` fuerza
-controles nativos oscuros en ambas páginas.
+## 2. Temas y tokens
 
-## 2. Tokens (`:root`, styles.css:2–16)
+Dos ediciones comparten estructura y componentes:
 
-| Token | Valor | Uso real |
-| --- | --- | --- |
-| `--bg` | `#080a14` | Fondo base |
-| `--surface` | `rgba(255,255,255,.045)` | **Declarado sin uso** |
-| `--surface-2` | `rgba(255,255,255,.075)` | **Declarado sin uso** |
-| `--line` | `rgba(255,255,255,.09)` | Bordes y separadores |
-| `--line-strong` | `rgba(255,255,255,.16)` | Bordes de toast y `kbd` |
-| `--text` | `#f3f4fb` | Texto principal |
-| `--muted` | `#98a1bd` | Texto secundario |
-| `--accent` | `#8b7bff` | Punto de estado «girando» |
-| `--accent-soft` | `rgba(139,123,255,.16)` | Fondo del botón de sonido silenciado |
-| `--pink` | `#ff5c9d` | **Declarado sin uso**; el literal se repite en gradientes |
-| `--green` | `#5eead4` | Punto del badge «Gratis» |
-| `--radius` | `22px` | Radio de tarjetas |
-| `--font` | `ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, …` | Tipografía global |
+- **Día** (`:root`): papel `#f4eee1`, tinta `#1a1611`, bermellón `#b03a24`.
+- **Noche** (`[data-theme="night"]`): papel `#15120e`, tinta `#f2e9d8`, bermellón `#e2704d`.
 
-Además se usan colores literales no tokenizados (violeta `#9a8cff`/`#6a5cff`, grises de texto,
-`#6ee7a0` del estado «done»). Si se quiere tematizar, conviene tokenizarlos.
+El atributo `data-theme="day|night"` vive en `<html>`. Un script inline en el `<head>` lo fija antes
+de pintar para evitar el destello del tema equivocado:
+
+1. Si `localStorage["ruleta-theme"]` es `day` o `night`, usa esa preferencia.
+2. Si no, sigue `prefers-color-scheme`.
+3. Si el almacenamiento falla, cae en `day`.
+
+`color-scheme` cambia con el tema, de modo que los controles nativos y las barras de desplazamiento
+acompañan la edición.
+
+| Token | Día | Noche | Uso |
+| --- | --- | --- | --- |
+| `--paper` | `#f4eee1` | `#15120e` | Fondo y texto sobre tinta |
+| `--paper-2` | `#ede4d2` | `#1c1812` | Pliego del veredicto, hover, `kbd` |
+| `--paper-3` | `#e6dbc5` | `#231d15` | Pressed, botones de sonido |
+| `--ink` | `#1a1611` | `#f2e9d8` | Texto principal, filetes fuertes |
+| `--ink-soft` | `#4e463a` | `#c9bca4` | Texto secundario |
+| `--ink-mute` | `#6e6352` | `#a59880` | Metadatos y etiquetas |
+| `--rule` | `rgba(26,22,17,.22)` | `rgba(242,233,216,.18)` | Filetes finos |
+| `--rule-strong` | `rgba(26,22,17,.5)` | `rgba(242,233,216,.42)` | Filetes y bordes destacados |
+| `--vermilion` | `#b03a24` | `#e2704d` | Acento, sello del veredicto, foco |
+| `--vermilion-deep` | `#8a2b18` | `#f09a80` | Hover del botón de añadir |
+| `--brass` | `#8c6e36` | `#c9a567` | Reserva editorial |
+| `--focus` | `#8a2b18` | `#f09a80` | Contorno de foco |
+| `--radius` | `2px` | `2px` | Esquinas casi rectas |
+
+Sombras: `--shadow-plate` para la lámina de la ruleta y `--shadow-lift` para el toast. Siempre con
+desplazamiento vertical y desenfoque, nunca un halo.
 
 ### Colores de la ruleta
 
-Los 12 colores de las porciones viven en `PALETTE` (en ambos `app.js`), **no** en CSS. Cambiar solo los
-tokens no cambia la ruleta; hay que tocar los dos JS para mantener coherencia con puntos, chips y confeti.
+Las porciones no usan tokens CSS: viven en `THEMES.day.palette` y `THEMES.night.palette` dentro de
+`app.js` y `en/app.js`. Cada tema define también `ink`, `paper`, `tick`, `tickStrong`, `ring` y `empty`
+para el dibujo del canvas.
+
+La etiqueta de cada porción elige entre tinta y papel según cuál dé **mayor contraste** con esa
+porción (`labelColor`). No se usa un umbral de luminancia fijo.
 
 ## 3. Tipografía
 
-Se usa la pila de sistema (sin fuentes externas). Tamaño base del navegador (16 px por defecto).
+Dos familias autoalojadas en `assets/fonts/` (woff2, subconjuntos latino y latín extendido):
 
-| Elemento | Tamaño | Peso / detalle |
+- **Bodoni Moda** — titular, marca y valor del veredicto. Didone, con cursiva para la palabra
+  bermellón del titular.
+- **Karla** — interfaz, etiquetas, opciones, botones y texto corrido del canvas.
+
+Ambas se declaran con `font-display: swap` y se precargan las variantes latinas en el `<head>`.
+No hay peticiones a Google Fonts ni a ningún CDN.
+
+| Elemento | Tamaño | Detalle |
 | --- | --- | --- |
-| `h1` hero | `clamp(2.05rem, 4.6vw, 3.2rem)` | 800, `line-height: 1.03`, `letter-spacing: -0.035em`, texto con degradado blanco→lavanda |
-| Lede | `clamp(.95rem, 1.4vw, 1.05rem)` | `--muted`, ancho máx. 54ch, `line-height: 1.55` |
-| Badge | `.75rem` | 600, `letter-spacing: .02em` |
-| Título de tarjeta | `.92rem` | 700 |
-| Etiqueta «Resultado» | `.7rem` | 700, mayúsculas, `letter-spacing: .17em` |
-| Valor del resultado | `clamp(1.6rem, 2.8vw, 2rem)` | 800, `letter-spacing: -.025em` |
-| Texto meta del resultado | `.82rem` | `--muted` |
-| Opciones | `.89rem` | Una línea con elipsis |
-| Botones | `.8rem` | 600 |
-| Enlace de idioma | `.72rem` | 700, texto `EN`/`ES`, `letter-spacing: .06em` |
-| Chips | `.78rem` | Una línea con elipsis |
-| Footer | `.78rem` (`.72rem` en móvil) | `#6f7896` |
-| Toast | `.86rem` | — |
-| Hub «GIRAR» | `clamp(.68rem, 1.55vw, .85rem)` | 800, `letter-spacing: .2em` |
-| Hub subtítulo | `clamp(.52rem, 1.05vw, .62rem)` | 600 |
-| Texto del canvas | `max(10px, min(22px, R × factor))` | 700; factor según nº de opciones |
+| `h1` | `clamp(2.65rem, 5.9vw, 5rem)` | Bodoni 500, `line-height: .94`, ancho máx. `15ch` |
+| `h1` móvil | `clamp(2.55rem, 12.6vw, 3.4rem)` | `text-wrap: wrap` |
+| Lede | `clamp(.96rem, 1.15vw, 1.05rem)` | Karla, `line-height: 1.6`, máx. `34ch` |
+| Marca | `1.42rem` | Bodoni 600; `1.24rem` en móvil |
+| Tagline de marca | `.7rem` | Mayúsculas, `letter-spacing: .15em` |
+| Fecha | `.75rem` | `letter-spacing: .04em` |
+| Meta del hero | `.7rem` | Mayúsculas, separada por `·` bermellón |
+| Etiquetas y títulos de bloque | `.7rem` | Mayúsculas, `letter-spacing: .16–.18em` |
+| Valor del veredicto | `clamp(1.95rem, 2.9vw, 2.55rem)` | Bodoni 500 |
+| Texto meta del veredicto | `.82rem` | `--ink-soft` |
+| Hub «Girar» | `clamp(.7rem, 1.4vw, .82rem)` | Mayúsculas, `letter-spacing: .24em` |
+| Contador del hub | `clamp(.7rem, 1vw, .74rem)` | Cifras tabulares |
+| Opciones | `.92rem` | Una línea con elipsis |
+| Campo de texto | `.94rem` | — |
+| Botones | `.7rem` | Mayúsculas, `letter-spacing: .1em` |
+| Chips del historial | `.76rem` | Una línea con elipsis |
+| Colofón | `.7rem` | `text-wrap: pretty` |
+| Toast | `.84rem` | — |
+
+Texto del canvas: `max(11px, min(22px, R × factor))`, con factor `0.084` hasta 10 opciones, `0.073`
+hasta 15 y `0.062` a partir de 16. El texto se recorta con puntos suspensivos si no cabe.
 
 ## 4. Layout
 
 ```text
-.app  max-width 1120px · padding 26px 24px 40px · flex column · gap 22px
-├─ .topbar      marca a la izquierda · .topbar__actions (lang switch + sonido) a la derecha
-├─ .hero        badge + h1 + lede, centrados
-├─ .stage       grid: minmax(0,1fr) | minmax(340px,390px) · gap clamp(24px,4vw,52px)
-│  ├─ .stage__wheel   ruleta (máx. 500px) + pista de teclado
-│  └─ .panel          resultado · opciones · historial
-└─ .footer
+.app  max-width 1200px · padding 24px gutter 42px · columna · z-index 1
+├─ .masthead   marca + tagline · fecha · acciones (tema, idioma, sonido)
+│              filete doble inferior
+├─ .hero       grid 1fr | 280–360px, alineado al pie
+│  ├─ h1       dos líneas, «suerte» en cursiva bermellón
+│  └─ aside    lede + meta, separados por filete vertical
+├─ .stage      grid 1fr | 350–404px
+│  ├─ .plate   ruleta hasta 560px + caption «Fig. 1»
+│  └─ .panel   veredicto · opciones · historial
+└─ .colophon   filete doble · créditos · privacidad
 ```
 
-- Fondo del `body`: tres degradados radiales (violeta arriba-izquierda, rosa arriba-derecha, verde
-  abajo) + degradado vertical, con `background-attachment: fixed`.
-- `body::before`: retícula de 68×68 px con máscara radial, `pointer-events: none`.
-- `.fx`: canvas de confeti fijo, `z-index: 50`.
-- `.app`: `z-index: 1`.
+- `.app` centra el contenido y mantiene el `z-index` por encima del canvas de confeti.
+- `.fx` es un canvas fijo a pantalla completa, `pointer-events: none`, `z-index: 50`.
+- El cuerpo tiene un lavado radial muy suave de papel; en noche es una luz cálida casi imperceptible.
+- El filete doble se hace con `border-bottom: 3px double`.
 
 ## 5. Componentes
 
 | Componente | Selectores | Notas |
 | --- | --- | --- |
-| Cabecera | `.topbar`, `.brand`, `.brand__icon` | Icono SVG en cuadro con degradado violeta→rosa |
-| Acciones de cabecera | `.topbar__actions` | Contenedor flex con gap de 8 px para idioma y sonido |
-| Enlace de idioma | `.lang-switch` | Botón rectangular redondeado de 38 px de alto, borde sutil, texto `EN`/`ES`; navega a la otra página |
-| Botón de icono | `.icon-btn` | 38×38, borde sutil, dos SVG (on/off) alternados por `aria-pressed` |
-| Badge | `.badge`, `.badge__dot` | Píldora con punto verde luminoso |
-| Ruleta | `.wheel`, `#wheelCanvas`, `.pointer`, `.hub` | Halo en `::before`, sombra en canvas, puntero con `clip-path`, hub con anillo pulsante |
-| Pista | `.hint`, `kbd` | «Haz clic en la ruleta o pulsa Espacio» |
-| Tarjeta | `.card` | Cristal: borde, degradado blanco translúcido, sombra, blur 14 px, radio 22 px |
-| Resultado | `.result`, `.result__*` | Degradado violeta superior; estados `data-state` |
-| Alta de opción | `.add-form`, `input`, `button` | Input 42 px; botón `+` con degradado violeta |
-| Lista de opciones | `.options`, `.option`, `.option__*` | Altura máx. 360 px con scroll fino; punto de color; `×` |
-| Acciones | `.panel__actions`, `.btn` | «Mezclar» y «Restablecer» con SVG inline |
-| Historial | `.history`, `.chip`, `.chip__dot` | Chips que envuelven en varias líneas |
-| Toast | `.toast` | Fijo abajo, `translate(-50%, 14px)` → `0` al mostrarse |
-| Sin JS | `.noscript` | Aviso fijo abajo |
-| Solo lectores | `.sr-only` | Técnica de recorte 1×1 |
+| Cabecera | `.masthead`, `.wordmark` | Tres columnas; el icono es una ruleta de ocho radios |
+| Fecha | `.dateline` | Se oculta por debajo de 1020px |
+| Acciones | `.masthead__actions`, `.icon-btn`, `.lang-link` | 40×40; 38×38 en móvil |
+| Titular | `.hero`, `.hero__title`, `.hero__aside` | Filete inferior; columna lateral con filete izquierdo |
+| Lámina | `.plate`, `.wheel`, `#wheelCanvas` | Canvas con `role="img"`, sombra de imprenta |
+| Marcas | dibujadas en canvas | 144 marcas; cada 12 una más larga y oscura, más un aro exterior |
+| Puntero | `.pointer` | Triángulo con `clip-path`; tinta de día, bermellón de noche |
+| Hub | `.hub`, `.hub__label`, `.hub__sub` | Botón real, aro interior, inversión al hover |
+| Caption | `.caption`, `.caption__fig` | «Fig. 1»; en táctil cambia a «Toca la ruleta para girar» |
+| Veredicto | `.slip`, `.slip__head`, `.result__value`, `.result__meta` | Pliego con filete superior bermellón y perforación discontinua |
+| Opciones | `.block`, `.add-form`, `.options`, `.option` | Lista con puntos de color y botones `×` |
+| Acciones | `.panel__actions`, `.btn` | Barajar y reiniciar, con iconos SVG |
+| Historial | `.history`, `.chip`, `.chip__dot` | Últimos 10 veredictos visibles |
+| Toast | `.toast` | Fijo abajo, `role="status"` |
+| Sin JS | `.noscript` | Aviso fijo |
 
-### Estados visuales
+### Estados
 
 | Estado | Selector | Efecto |
 | --- | --- | --- |
-| Girando | `.wheel.is-spinning` | Halo más intenso, sombra violeta, cursor por defecto, anillo del hub detenido |
-| Girando | `.result[data-state="spinning"]` | Punto violeta parpadeante (`blink`, 0.9 s) |
-| Ganador | `.result[data-state="done"]` | Punto verde |
-| Ganador | `.result__value.is-win` | Color de la porción + `text-shadow` con `color-mix` |
-| Aparición | `.result.is-pop` | `popIn` 0.5 s con rebote |
-| Sonido off | `.icon-btn[aria-pressed="true"]` | Fondo violeta tenue, icono `off` |
+| Girando | `.wheel.is-spinning` | Cursor por defecto; el aro interior del hub pasa a bermellón |
+| Girando | `.result[data-state="spinning"]` | Punto bermellón parpadeante |
+| Ganador | `.result[data-state="done"]` | Punto del color ganador |
+| Ganador | `.result__value.is-win` | Subrayado con el color de la porción |
+| Aparición | `.result.is-pop` | `inkIn`: entra con desenfoque y desplazamiento |
+| Tema noche | `html[data-theme="night"]` | Cambia tokens, icono sol/luna y paleta del canvas |
+| Sonido off | `.icon-btn[aria-pressed="true"]` | Fondo `--paper-3` e icono tachado |
 | Toast | `.toast.is-visible` | Opacidad 1 y desplazamiento a 0 |
 | Deshabilitado | `:disabled` | Opacidad reducida y cursor por defecto |
 
@@ -118,91 +152,103 @@ Se usa la pila de sistema (sin fuentes externas). Tamaño base del navegador (16
 
 | Animación | Implementación | Duración / easing |
 | --- | --- | --- |
-| Giro de la ruleta | JS, `requestAnimationFrame` | 4,4–5,8 s; `1-(1-t)^4` |
-| Tick de sonido | Web Audio | 60 ms por oscilador |
-| Fanfarria | Web Audio | 4 notas, 85 ms de separación, 520 ms cada una |
-| Confeti | JS en canvas | Vida 1 con decaimiento 0,006–0,014 por frame |
-| Anillo del hub | `@keyframes hubPulse` | 3 s, infinito, `ease-out` |
+| Giro | JS + `requestAnimationFrame` | 4,4–5,8 s; `1-(1-t)^4`; 5–7 vueltas |
+| Tick | Web Audio | Oscilador de 60 ms; frecuencia sube con el progreso |
+| Fanfarria | Web Audio | 4 notas, 85 ms de separación |
+| Confeti | Canvas | Flecos de papel con gravedad, giro y desvanecido |
 | Punto de estado | `@keyframes blink` | 0,9 s, infinito |
-| Pop del resultado | `@keyframes popIn` | 0,5 s, `cubic-bezier(.22,.9,.3,1.4)` |
-| Hover / foco / toast | `transition` | 0,16–0,4 s |
-| Halo de la ruleta | `transition: opacity` | 0,4 s |
+| Entrada del veredicto | `@keyframes inkIn` | 0,55 s |
+| Tema | `transition` de color de fondo y texto | 0,35 s |
+| Hover / foco / toast | `transition` | 0,16–0,22 s |
 
 ### Movimiento reducido
 
-Doble tratamiento:
-
 1. **CSS**: `@media (prefers-reduced-motion: reduce)` reduce animaciones y transiciones a `0.01ms`
    y una sola iteración.
-2. **JS**: si `REDUCED`, el giro dura 650 ms y da 2 vueltas, el confeti no se genera y el scroll es
-   instantáneo.
+2. **JS**: si `REDUCED`, el giro dura 650 ms, da 2 vueltas, no hay confeti y el desplazamiento al
+   veredicto es instantáneo.
 
-La preferencia se lee **una sola vez** al cargar; cambiarla con la página abierta no surte efecto
-hasta recargar.
+La preferencia se lee una vez al cargar; cambiarla con la página abierta no surte efecto hasta
+recargar.
 
 ## 7. Responsive
 
 | Rango | Cambios |
 | --- | --- |
-| > 960 px | Dos columnas; ruleta hasta 500 px; panel de 340–390 px |
-| ≤ 960 px | Una columna; ruleta hasta 470 px centrada; panel máx. 560 px centrado |
-| ≤ 560 px | Padding 18/16/32; ruleta hasta 400 px; tarjetas con 15 px y radio 19; puntero 24×32; footer más pequeño |
+| > 1020px | Dos columnas; fecha visible; ruleta hasta 560px; panel de 350–404px |
+| ≤ 1020px | Una columna; fecha oculta; hero apilado; panel máx. 560px centrado |
+| ≤ 640px | Padding 16px; acciones de 38px; titular a dos líneas; lista sin scroll interno; colofón apilado |
+| `hover: none` y puntero grueso | La pista de teclado se sustituye por «Toca la ruleta para girar» |
 
-También hay ajustes fluidos con `clamp()` en tipografía, gaps y hub. No hay estilos de impresión ni
-orientación específica.
+La lista de opciones tiene `max-height: 409px` en escritorio (ocho opciones) y `max-height: none` en
+móvil. No hay estilos de impresión.
 
 ## 8. Accesibilidad
 
 ### Semántica y ARIA
 
-- `<header>`, `<main>`, `<aside>`, `<section>`, `<footer>`, `h1` y `h2` en orden.
-- El canvas de la ruleta tiene `role="img"` y un `aria-label` que se actualiza con las opciones:
-  «Ruleta con N opciones: …» o «Ruleta vacía».
-- El botón central es un `<button>` real con `aria-label="Girar la ruleta"` / `aria-label="Spin the wheel"`.
-- El enlace de idioma lleva `hreflang`, `lang` del idioma destino y `aria-label` en ese idioma
-  («Switch to English» / «Cambiar a español»); cada documento declara su `lang` (`es`/`en`).
-- El campo tiene `<label class="sr-only">`; los botones de eliminar llevan `aria-label="Quitar X"` /
-  `aria-label="Remove X"`.
-- El resultado usa `aria-live="polite"` y `aria-atomic="true"`; el toast usa `role="status"`.
-- El botón de sonido expone `aria-pressed` (verdadero = silenciado) y actualiza `aria-label`/`title`.
-- Los SVG decorativos llevan `aria-hidden="true"`; el canvas de confeti también.
+- `<header>`, `<main>`, `<aside>`, `<section>`, `<footer>`, un `h1` y dos `h2` en orden.
+- El canvas tiene `role="img"` y un `aria-label` que se actualiza: «Ruleta con N opciones: …» o
+  «Ruleta vacía» / «Wheel with N options: …» o «Empty wheel».
+- El hub es un `<button>` real con `aria-label="Girar la ruleta"` / `"Spin the wheel"`.
+- El enlace de idioma lleva `hreflang`, `lang` del idioma destino y `aria-label` en ese idioma; cada
+  documento declara su `lang`.
+- El campo tiene `<label class="sr-only">`; cada botón de eliminar lleva `aria-label="Quitar X"` /
+  `"Remove X"`.
+- El valor del veredicto usa `aria-live="polite"` y `aria-atomic="true"`; el toast, `role="status"`.
+- Los botones de tema y sonido exponen `aria-pressed` y actualizan `aria-label` y `title`.
+- Los SVG decorativos y el canvas de confeti llevan `aria-hidden="true"`.
 
 ### Teclado
 
-- `Tab` recorre enlaces/botones/campo; el foco visible es un contorno violeta de 2 px con offset 3 px.
-- `Espacio` gira (salvo dentro de campos editables o sobre otros botones, donde conserva su función).
-- `Enter` en el campo envía el formulario y añade la opción.
-- Los botones `×` son enfocables y accionables con `Enter`/`Espacio`.
+- `Tab` recorre enlaces, botones y campo; el foco visible es un contorno de 2px con offset 3px.
+- `Espacio` gira salvo dentro de campos editables o sobre otros botones, donde conserva su función.
+- `Enter` en el campo añade la opción.
+- Los botones `×` son enfocables y se accionan con `Enter` o `Espacio`.
+
+### Contraste
+
+Medido sobre los tokens actuales:
+
+| Combinación | Día | Noche |
+| --- | --- | --- |
+| Tinta sobre papel | 15,6:1 | 15,5:1 |
+| Texto secundario sobre papel | 8,0:1 | 10,0:1 |
+| Metadatos sobre papel | 5,1:1 | 6,6:1 |
+| Metadatos sobre `--paper-2` | 4,7:1 | 6,2:1 |
+| Bermellón sobre papel | 5,2:1 | 5,9:1 |
+
+Todas superan AA para texto normal. En el canvas, la etiqueta usa la tinta de mayor contraste; el
+peor par de las paletas actuales queda en 4,65:1.
 
 ### Puntos a revisar
 
 - **El canvas no es enfocable**: el clic para girar no está disponible por teclado directamente, pero
-  el botón central equivalente sí. Es aceptable, aunque el `role="img"` con `click` no es ideal.
-- **Objetivos táctiles**: los botones `×` miden 26×26 px y los de cabecera 38×38 px, por debajo de los
+  el botón central equivalente sí.
+- **Objetivos táctiles**: los botones `×` miden 32×32px y los de cabecera 38–40px, por debajo de los
   44×44 recomendados.
-- **Contraste**: `--muted` sobre el fondo oscuro suele cumplir AA; los tonos más bajos
-  (`.footer #6f7896`, placeholders `#6f7896`, `.history-empty #7882a3`) son los candidatos a fallar
-  en texto pequeño. Conviene verificarlos con Lighthouse/axe.
-- **Texto con degradado**: el `h1` usa `color: transparent` + `background-clip: text`; en modo de
-  alto contraste de Windows puede quedar invisible. Considerar un `@media (forced-colors: active)`
-  que restaure un color sólido.
-- **Estado «Girando»/«¡Resultado!»** no está en una región `aria-live`; solo el valor del resultado lo
-  está. Un lector de pantalla oirá el ganador, no el estado intermedio.
-- **`confirm()` nativo** para restablecer: accesible, pero rompe la estética y no se puede personalizar.
+- **Estado intermedio**: «Girando» no está en una región `aria-live`; el lector anuncia el ganador,
+  no el estado intermedio.
+- **`confirm()` nativo** para reiniciar: accesible, pero rompe la estética y no se puede personalizar.
+- **Alto contraste**: `@media (forced-colors: active)` restaura el color heredado del titular y
+  refuerza los bordes de los controles principales.
 
 ## 9. Assets
 
 | Asset | Uso |
 | --- | --- |
-| SVG inline | Marca, botón de sonido, mezclar, restablecer |
-| Favicon | `data:image/svg+xml` en el `<head>` (círculo violeta con flecha) |
-| `preview.png` | Solo documentación (README); la app no lo carga |
-| Fuentes | Ninguna externa; pila del sistema |
+| `assets/fonts/bodoni-moda-*.woff2` | Display y veredicto (normal, cursiva, latín y latín-ext) |
+| `assets/fonts/karla-*.woff2` | Interfaz y canvas (latín y latín-ext) |
+| SVG inline | Marca, tema, sonido, barajar, reiniciar y añadir |
+| Favicon | `data:image/svg+xml` en el `<head>` |
+| `preview.png` | Solo documentación; la app no lo carga |
 
 ## 10. Cómo tematizar
 
-1. Cambia los tokens de `:root` en `styles.css` (fondo, texto, acento, radio). Afecta a ambos idiomas.
-2. Cambia `PALETTE` en `app.js` **y** `en/app.js` para porciones, puntos, chips y confeti.
-3. Revisa los literales de color (degradados del fondo, botón `+`, marca, estados) que no usan tokens.
-4. Verifica contraste y los estados hover/foco.
-5. Comprueba móvil a 360 px y escritorio a 1440 px, en `/` y en `/en/`.
+1. Cambia los tokens de `:root` (día) y `[data-theme="night"]` (noche) en `styles.css`.
+2. Cambia `THEMES.day` y `THEMES.night` en `app.js` **y** `en/app.js`: paleta, tintas, marcas y aro.
+3. Mantén el contraste de las etiquetas del canvas; `labelColor` elige la tinta con más contraste,
+   pero la paleta debe seguir dando al menos 4,5:1.
+4. Revisa los literales de color que no son tokens: sombras del puntero y del hub, y el `theme-color`
+   del `<head>`.
+5. Comprueba día y noche en móvil (390px y 320px) y escritorio (1440px), en `/` y en `/en/`.

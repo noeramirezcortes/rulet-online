@@ -3,43 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ruleta de la Suerte — Gira y decide</title>
+  <title>Ruleta de la suerte — Gira y decide</title>
   <meta name="description" content="Ruleta aleatoria gratis para decidir qué comer, quién paga o cualquier otra cosa. Añade tus opciones, gira y deja que el azar elija. Sin registro." />
-  <meta name="theme-color" content="#080a14" />
-  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" id="themeColor" content="#f4eee1" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
   <meta property="og:title" content="Ruleta de la Suerte — Gira y decide" />
   <meta property="og:description" content="Añade tus opciones, gira la ruleta y deja que el azar elija. Gratis, sin registro y sin anuncios." />
   <link rel="alternate" hreflang="es" href="index.html" />
   <link rel="alternate" hreflang="en" href="en/index.html" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%238b7bff'/%3E%3Cpath d='M32 8l7 13H25z' fill='%23fff'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%230b0e1c'/%3E%3C/svg%3E" />
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("ruleta-theme");
+        var theme = stored === "day" || stored === "night"
+          ? stored
+          : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "night" : "day");
+        document.documentElement.dataset.theme = theme;
+      } catch (error) {
+        document.documentElement.dataset.theme = "day";
+      }
+    })();
+  </script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23b03a24'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23f4eee1' stroke-width='2'/%3E%3Cpath d='M32 6l6 14H26z' fill='%23f4eee1'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%231a1611'/%3E%3C/svg%3E" />
+  <link rel="preload" href="assets/fonts/bodoni-moda-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/karla-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <canvas id="fx" class="fx" aria-hidden="true"></canvas>
 
   <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M12 3v9M21 12h-9M12 21v-9M3 12h9" />
-            <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+    <header class="masthead">
+      <a class="wordmark" href="index.html" aria-label="La Ruleta, inicio">
+        <svg class="wordmark__mark" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true">
+          <circle cx="16" cy="16" r="13.2" />
+          <circle cx="16" cy="16" r="4.4" />
+          <path d="M16 2.8v8.8M16 20.4v8.8M2.8 16h8.8M20.4 16h8.8M6.8 6.8l6.2 6.2M19 19l6.2 6.2M25.2 6.8L19 13M13 19l-6.2 6.2" />
+        </svg>
+        <span class="wordmark__name">La Ruleta</span>
+        <span class="wordmark__tag">Almanaque de decisiones</span>
+      </a>
+
+      <p class="dateline" id="issueDate">Edición de hoy</p>
+
+      <div class="masthead__actions">
+        <button id="themeBtn" class="icon-btn theme-btn" type="button" title="Activar modo noche" aria-label="Activar modo noche" aria-pressed="false">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" />
           </svg>
-        </span>
-        <span>Ruleta</span>
-      </div>
-      <div class="topbar__actions">
-        <a class="lang-switch" href="en/index.html" hreflang="en" lang="en" aria-label="Switch to English">EN</a>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.2" />
+            <path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7" />
+          </svg>
+        </button>
+
+        <a class="lang-link" href="en/index.html" hreflang="en" lang="en" aria-label="Switch to English (versión en inglés)">EN</a>
+
         <button id="soundBtn" class="icon-btn" type="button" title="Silenciar sonido" aria-label="Silenciar sonido" aria-pressed="false">
-          <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg class="icon-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M11 5 6 9H3v6h3l5 4V5Z" />
             <path d="M15.5 8.5a5 5 0 0 1 0 7" />
             <path d="M18.5 5.5a9 9 0 0 1 0 13" />
           </svg>
-          <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <svg class="icon-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M11 5 6 9H3v6h3l5 4V5Z" />
             <path d="m16 9 5 6M21 9l-5 6" />
           </svg>
@@ -48,79 +75,97 @@
     </header>
 
     <div class="hero">
-      <span class="badge"><span class="badge__dot"></span> Gratis · sin registro</span>
-      <h1>Ruleta de la suerte</h1>
-      <p class="hero__lede">Escribe tus opciones, gira la ruleta y deja que el azar decida por ti.</p>
+      <h1 class="hero__title">Ruleta de la <em>suerte</em></h1>
+      <div class="hero__aside">
+        <p class="hero__lede">Escribe lo que está en juego y gira. El azar firma el veredicto; tú decides si lo aceptas.</p>
+        <p class="hero__meta">
+          <span>Gratis</span>
+          <span>Sin registro</span>
+          <span>Sin anuncios</span>
+        </p>
+      </div>
     </div>
 
     <main class="stage">
       <section class="stage__wheel" aria-label="Ruleta">
-        <div class="wheel" id="wheel">
-          <canvas id="wheelCanvas" role="img" aria-label="Ruleta"></canvas>
-          <div class="pointer" aria-hidden="true"></div>
-          <button id="spinBtn" class="hub" type="button" aria-label="Girar la ruleta">
-            <span class="hub__label">GIRAR</span>
-            <span class="hub__sub" id="hubSub">8 opciones</span>
-          </button>
+        <div class="plate">
+          <div class="wheel" id="wheel">
+            <canvas id="wheelCanvas" role="img" aria-label="Ruleta"></canvas>
+            <div class="pointer" aria-hidden="true"></div>
+            <button id="spinBtn" class="hub" type="button" aria-label="Girar la ruleta">
+              <span class="hub__label">Girar</span>
+              <span class="hub__sub" id="hubSub">8 opciones</span>
+            </button>
+          </div>
         </div>
-        <p class="hint">Haz clic en la ruleta o pulsa <kbd>Espacio</kbd></p>
+        <p class="caption">
+          <span class="caption__fig">Fig. 1</span>
+          <span class="caption__pointer">Gira con un clic o pulsa <kbd>Espacio</kbd></span>
+          <span class="caption__touch">Toca la ruleta para girar</span>
+        </p>
       </section>
 
-      <aside class="panel">
-        <section class="card result" id="resultCard" data-state="idle">
-          <div class="result__top">
-            <span class="result__label">Resultado</span>
-            <span class="result__status"><span class="dot"></span><span id="statusText">Lista</span></span>
+      <aside class="panel" aria-label="Panel de la ruleta">
+        <section class="slip result" id="resultCard" data-state="idle">
+          <div class="slip__head">
+            <span class="label">Veredicto</span>
+            <span class="status"><span class="dot"></span><span id="statusText">En espera</span></span>
           </div>
           <p class="result__value" id="resultValue" aria-live="polite" aria-atomic="true">—</p>
-          <p class="result__meta" id="resultMeta">Gira la ruleta para ver la opción ganadora.</p>
+          <p class="result__meta" id="resultMeta">Gira la ruleta para conocer el veredicto.</p>
         </section>
 
-        <section class="card">
-          <div class="panel__head">
-            <h2 class="panel__title">Opciones <span class="count" id="optCount">0/20</span></h2>
+        <section class="block">
+          <div class="block__head">
+            <h2 class="block__title" id="optionsTitle">Opciones</h2>
+            <span class="count" id="optCount">0/20</span>
           </div>
 
           <form class="add-form" id="optionForm" autocomplete="off">
             <label class="sr-only" for="optionInput">Nueva opción</label>
-            <input id="optionInput" name="option" type="text" maxlength="40" placeholder="Añade una opción…" />
-            <button type="submit" aria-label="Añadir opción">+</button>
+            <input id="optionInput" name="option" type="text" maxlength="40" placeholder="Escribe una opción…" />
+            <button type="submit" aria-label="Añadir opción">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
           </form>
 
-          <ul class="options" id="optionsList"></ul>
-          <p class="options-empty" id="optionsEmpty" hidden>Tu ruleta está vacía. Añade al menos 2 opciones.</p>
+          <ul class="options" id="optionsList" aria-labelledby="optionsTitle"></ul>
+          <p class="options-empty" id="optionsEmpty" hidden>La ruleta está en blanco. Añade al menos dos opciones.</p>
 
           <div class="panel__actions">
             <button class="btn" id="shuffleBtn" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M3 7h3.5c1.5 0 2.5.8 3.4 2l4.2 6c.9 1.2 1.9 2 3.4 2H21" />
                 <path d="M3 17h3.5c1.5 0 2.5-.8 3.4-2l4.2-6c.9-1.2 1.9-2 3.4-2H21" />
                 <path d="m18 4 3 3-3 3M18 14l3 3-3 3" />
               </svg>
-              Mezclar
+              Barajar
             </button>
             <button class="btn" id="resetBtn" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
                 <path d="M3 3v5h5" />
               </svg>
-              Restablecer
+              Reiniciar
             </button>
           </div>
         </section>
 
-        <section class="card">
-          <div class="panel__head">
-            <h2 class="panel__title">Historial</h2>
+        <section class="block">
+          <div class="block__head">
+            <h2 class="block__title">Últimos veredictos</h2>
           </div>
           <div class="history" id="history"></div>
-          <p class="history-empty" id="historyEmpty">Aún no hay resultados.</p>
+          <p class="history-empty" id="historyEmpty">Todavía no hay veredictos.</p>
         </section>
       </aside>
     </main>
 
-    <footer class="footer">
-      <p>Hecha con HTML, CSS y JavaScript · Tus opciones se guardan en este navegador</p>
+    <footer class="colophon">
+      <p>Hecha con HTML, CSS y JavaScript · Sin registro, sin anuncios.</p>
+      <p>Tus opciones se quedan en este navegador.</p>
     </footer>
   </div>
 

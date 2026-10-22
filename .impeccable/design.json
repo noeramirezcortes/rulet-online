@@ -1,0 +1,228 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T23:51:39.890Z",
+  "title": "Design System: La Ruleta — Almanaque de decisiones",
+  "extensions": {
+    "colorMeta": {
+      "vermilion": {
+        "role": "primary",
+        "displayName": "Vermellón de sello",
+        "canonical": "#b03a24",
+        "tonalRamp": ["#3d170f", "#6c281b", "#9a3927", "#c94a32", "#d7725f", "#e39b8d", "#eec4bc", "#faedeb"]
+      },
+      "vermilion-night": {
+        "role": "primary",
+        "displayName": "Vermellón de noche",
+        "canonical": "#e2704d",
+        "tonalRamp": ["#3d1a0f", "#6c2e1b", "#9a4227", "#c95632", "#d77b5f", "#e3a18d", "#eec8bc", "#faeeeb"]
+      },
+      "vermilion-deep": {
+        "role": "primary",
+        "displayName": "Vermellón profundo",
+        "canonical": "#8a2b18",
+        "tonalRamp": ["#3d170f", "#6c281b", "#9a3a27", "#c94b32", "#d7735f", "#e39c8d", "#eec4bc", "#faedeb"]
+      },
+      "brass": {
+        "role": "secondary",
+        "displayName": "Latón editorial",
+        "canonical": "#8c6e36",
+        "tonalRamp": ["#372b15", "#614c26", "#8b6d36", "#b58f46", "#c7a86e", "#d7c198", "#e8dbc3", "#f8f4ed"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Papel marfil",
+        "canonical": "#f4eee1",
+        "tonalRamp": ["#382d15", "#634f24", "#8d7134", "#b89343", "#c9ac6c", "#d9c497", "#e9dcc2", "#f8f4ec"]
+      },
+      "paper-night": {
+        "role": "neutral",
+        "displayName": "Tinta de página",
+        "canonical": "#15120e",
+        "tonalRamp": ["#2e271f", "#514536", "#74634d", "#978165", "#af9e87", "#c6baaa", "#ddd6cd", "#f5f3f0"]
+      },
+      "paper-2": {
+        "role": "neutral",
+        "displayName": "Papel sombra",
+        "canonical": "#ede4d2",
+        "tonalRamp": ["#372c16", "#604d27", "#8a6e37", "#b49048", "#c6a970", "#d6c29a", "#e7dbc3", "#f8f4ed"]
+      },
+      "paper-3": {
+        "role": "neutral",
+        "displayName": "Papel presionado",
+        "canonical": "#e6dbc5",
+        "tonalRamp": ["#352b17", "#5e4c29", "#876d3a", "#b08e4c", "#c3a873", "#d4c19c", "#e6dbc4", "#f7f4ed"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Tinta de imprenta",
+        "canonical": "#1a1611",
+        "tonalRamp": ["#2e271e", "#514535", "#75634c", "#988163", "#b09d86", "#c7baa9", "#ded6cc", "#f5f3f0"]
+      },
+      "ink-night": {
+        "role": "neutral",
+        "displayName": "Tinta iluminada",
+        "canonical": "#f2e9d8",
+        "tonalRamp": ["#392c13", "#654e22", "#916f30", "#bd913f", "#cdaa69", "#dbc394", "#eadcc0", "#f9f4ec"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Tinta suave",
+        "canonical": "#4e463a",
+        "tonalRamp": ["#2c2721", "#4d4539", "#6f6352", "#90816b", "#aa9e8c", "#c2baae", "#dbd6cf", "#f4f3f0"]
+      },
+      "ink-mute": {
+        "role": "neutral",
+        "displayName": "Tinta muda",
+        "canonical": "#6e6352",
+        "tonalRamp": ["#2c2721", "#4d453a", "#6f6452", "#90826b", "#a99e8c", "#c2baae", "#dbd6cf", "#f4f3f0"]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Bodoni Moda",
+        "purpose": "Titular, marca y valor del veredicto. Cursiva solo para la palabra bermellón del titular."
+      },
+      "headline": {
+        "displayName": "Bodoni Moda",
+        "purpose": "Valor del veredicto."
+      },
+      "body": {
+        "displayName": "Karla",
+        "purpose": "Interfaz, lede, opciones y texto corrido del canvas."
+      },
+      "label": {
+        "displayName": "Karla",
+        "purpose": "Etiquetas en mayúsculas, estados, contadores y botones."
+      }
+    },
+    "shadows": [
+      {
+        "name": "plate",
+        "value": "0 26px 40px -30px rgba(48, 34, 16, 0.55)",
+        "purpose": "Sombra de la lámina de la ruleta de día."
+      },
+      {
+        "name": "plate-night",
+        "value": "0 30px 48px -32px rgba(0, 0, 0, 0.9)",
+        "purpose": "Sombra de la lámina de la ruleta de noche."
+      },
+      {
+        "name": "sheet",
+        "value": "0 18px 30px -18px rgba(48, 34, 16, 0.4)",
+        "purpose": "Solo el toast, como hoja temporal."
+      }
+    ],
+    "motion": [
+      {
+        "name": "spin",
+        "value": "4400–5800ms; cubic-bezier(1, 0, 0.25, 1) equivalent (1-(1-t)^4)",
+        "purpose": "Giro de la ruleta, con 5–7 vueltas y parada con jitter dentro de la porción."
+      },
+      {
+        "name": "spin-reduced",
+        "value": "650ms; 2 vueltas",
+        "purpose": "Giro con prefers-reduced-motion."
+      },
+      {
+        "name": "state",
+        "value": "160–220ms ease",
+        "purpose": "Hover, foco, botones, toast."
+      },
+      {
+        "name": "theme",
+        "value": "350ms ease",
+        "purpose": "Cambio de papel y tinta."
+      }
+    ],
+    "breakpoints": [
+      { "name": "stack", "value": "1020px" },
+      { "name": "mobile", "value": "640px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Botón cuadrado de añadir opción; el único control con relleno bermellón.",
+      "html": "<button class=\"ds-add\" type=\"button\" aria-label=\"Añadir opción\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button>",
+      "css": ".ds-add { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--vermilion, #b03a24); border-radius: 2px; background: var(--vermilion, #b03a24); color: var(--paper, #f4eee1); cursor: pointer; transition: background 0.18s ease, border-color 0.18s ease, transform 0.16s ease; } .ds-add svg { width: 16px; height: 16px; } .ds-add:hover { background: var(--vermilion-deep, #8a2b18); border-color: var(--vermilion-deep, #8a2b18); } .ds-add:active { transform: translateY(1px); } .ds-add:focus-visible { outline: 2px solid var(--focus, #8a2b18); outline-offset: 3px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Acción secundaria con borde fino: barajar o reiniciar.",
+      "html": "<button class=\"ds-ghost\" type=\"button\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 7h3.5c1.5 0 2.5.8 3.4 2l4.2 6c.9 1.2 1.9 2 3.4 2H21\"/><path d=\"M3 17h3.5c1.5 0 2.5-.8 3.4-2l4.2-6c.9-1.2 1.9-2 3.4-2H21\"/><path d=\"m18 4 3 3-3 3\"/></svg>Barajar</button>",
+      "css": ".ds-ghost { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 10px; border: 1px solid var(--rule-strong, rgba(26,22,17,.5)); border-radius: 2px; background: transparent; color: var(--ink-soft, #4e463a); font-family: var(--sans, Karla, sans-serif); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease; } .ds-ghost svg { width: 14px; height: 14px; } .ds-ghost:hover { background: var(--ink, #1a1611); border-color: var(--ink, #1a1611); color: var(--paper, #f4eee1); } .ds-ghost:focus-visible { outline: 2px solid var(--focus, #8a2b18); outline-offset: 3px; }"
+    },
+    {
+      "name": "Icon Button",
+      "kind": "button",
+      "refersTo": "icon-button",
+      "description": "Control de cabecera para tema o sonido.",
+      "html": "<button class=\"ds-icon\" type=\"button\" aria-label=\"Activar modo noche\" aria-pressed=\"false\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z\"/></svg></button>",
+      "css": ".ds-icon { display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border: 1px solid var(--rule, rgba(26,22,17,.22)); border-radius: 2px; background: transparent; color: var(--ink-soft, #4e463a); cursor: pointer; transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease; } .ds-icon svg { width: 18px; height: 18px; } .ds-icon:hover { background: var(--ink, #1a1611); border-color: var(--ink, #1a1611); color: var(--paper, #f4eee1); } .ds-icon[aria-pressed=\"true\"] { background: var(--paper-3, #e6dbc5); border-color: var(--rule-strong, rgba(26,22,17,.5)); color: var(--ink, #1a1611); } .ds-icon:focus-visible { outline: 2px solid var(--focus, #8a2b18); outline-offset: 3px; }"
+    },
+    {
+      "name": "Option Field",
+      "kind": "input",
+      "refersTo": "chip",
+      "description": "Campo editorial de una sola línea inferior.",
+      "html": "<label for=\"ds-option\" style=\"position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)\">Nueva opción</label><input id=\"ds-option\" class=\"ds-input\" type=\"text\" placeholder=\"Escribe una opción…\">",
+      "css": ".ds-input { width: 100%; height: 44px; padding: 0 2px; border: 0; border-bottom: 1px solid var(--rule-strong, rgba(26,22,17,.5)); border-radius: 0; background: transparent; color: var(--ink, #1a1611); font-family: var(--sans, Karla, sans-serif); font-size: 0.94rem; outline: none; transition: border-color 0.18s ease, box-shadow 0.18s ease; } .ds-input::placeholder { color: var(--ink-mute, #6e6352); opacity: 1; } .ds-input:focus-visible { outline: none; border-bottom-color: var(--vermilion, #b03a24); box-shadow: inset 0 -2px 0 var(--vermilion, #b03a24); }"
+    },
+    {
+      "name": "Verdict Slip",
+      "kind": "card",
+      "refersTo": "verdict-slip",
+      "description": "Pliego cuadrado del veredicto, con sello bermellón y perforación.",
+      "html": "<section class=\"ds-slip\"><div class=\"ds-slip-head\"><span class=\"ds-label\">Veredicto</span><span class=\"ds-status\"><span class=\"ds-dot\"></span>Resuelto</span></div><p class=\"ds-slip-value\">Hamburguesa</p><p class=\"ds-slip-meta\">La suerte ha hablado. Gira otra vez si no te convence.</p></section>",
+      "css": ".ds-slip { padding: 15px 18px 20px; border: 1px solid var(--rule-strong, rgba(26,22,17,.5)); border-top: 3px solid var(--vermilion, #b03a24); border-radius: 0; background: var(--paper-2, #ede4d2); color: var(--ink, #1a1611); } .ds-slip-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px dashed var(--rule-strong, rgba(26,22,17,.5)); } .ds-label, .ds-status { font-family: var(--sans, Karla, sans-serif); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute, #6e6352); } .ds-status { display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.1em; color: var(--ink-soft, #4e463a); } .ds-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--vermilion, #b03a24); } .ds-slip-value { margin: 14px 0 6px; font-family: var(--serif, 'Bodoni Moda', serif); font-size: clamp(1.95rem, 2.9vw, 2.55rem); font-weight: 500; line-height: 1.02; letter-spacing: -0.012em; } .ds-slip-meta { margin: 0; max-width: 32ch; color: var(--ink-soft, #4e463a); font-family: var(--sans, Karla, sans-serif); font-size: 0.82rem; line-height: 1.5; }"
+    },
+    {
+      "name": "History Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Recuerdo de un veredicto anterior con su color de porción.",
+      "html": "<span class=\"ds-chip\"><span class=\"ds-chip-dot\" style=\"--c:#B83E27\"></span>Pizza</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 5px 8px; border: 1px solid var(--rule, rgba(26,22,17,.22)); border-radius: 2px; color: var(--ink-soft, #4e463a); font-family: var(--sans, Karla, sans-serif); font-size: 0.76rem; line-height: 1.3; } .ds-chip-dot { flex: none; width: 7px; height: 7px; border-radius: 1px; background: var(--c, #1a1611); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El almanaque que firma veredictos",
+    "overview": "La ruleta no es un widget de casino: es la lámina de una publicación impresa. Un cabecero con fecha, filetes de imprenta y una didone grande convierten la decisión en un pequeño ritual editorial. El papel marfil y la tinta casi negra hacen el resto; de noche, la misma página se imprime en tinta.\n\nLa composición es asimétrica y gobernada por el texto: titular a la izquierda, lede estrecha a la derecha, ruleta como figura principal y una columna de veredicto y opciones separada por filetes. No hay tarjetas flotantes, cristal, halos ni degradados en el texto. La única voz alta es el bermellón: la palabra en cursiva del titular, el sello del veredicto y el foco.",
+    "keyCharacteristics": [
+      "Papel marfil cálido de día; tinta cálida de noche.",
+      "Bermellón como único acento, usado con avaricia.",
+      "Bodoni Moda para display y veredicto; Karla para la interfaz.",
+      "Filetes de 1px, dobles de 3px y una perforación discontinua en el veredicto.",
+      "Ruleta plana con marcas de graduación, sin brillos ni biseles.",
+      "Esquinas de 2px; el veredicto es cuadrado."
+    ],
+    "rules": [
+      { "name": "The One Shout Rule", "body": "El bermellón ocupa menos del 10 % de cualquier vista. Si dos elementos compiten por él, uno sobra.", "section": "colors" },
+      { "name": "The Paper-and-Ink Rule", "body": "Cada tema intercambia papel y tinta; nunca se usa blanco puro ni negro puro. La calidez del neutro es lo que hace que la página parezca impresa.", "section": "colors" },
+      { "name": "The Italic Exception Rule", "body": "La cursiva serif está reservada para una sola palabra del titular. No se usa en cuerpo, botones, etiquetas ni en el veredicto.", "section": "typography" },
+      { "name": "The Upright Interface Rule", "body": "Karla nunca se inclina ni se estira. La interfaz se mantiene recta para que el contraste con la didone sea legible como sistema, no como efecto.", "section": "typography" },
+      { "name": "The Printed Page Rule", "body": "Si un elemento parece flotar sobre el papel en lugar de estar impreso en él, está mal. La única excepción es el toast, que es una hoja temporal.", "section": "elevation" },
+      { "name": "The Square Slip Rule", "body": "El veredicto es un recorte de papel, no una tarjeta: esquinas a 0 y filete superior bermellón. Redondearlo lo convierte en otro producto.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do usar Bodoni Moda solo para el titular, la marca y el valor del veredicto.",
+      "Do mantener el bermellón por debajo del 10 % de la vista y reservarlo para el foco, la cursiva del titular y el sello del veredicto.",
+      "Do separar con filetes de 1px y reservar el doble de 3px para el cabecero y el colofón.",
+      "Do elegir la tinta de cada etiqueta del canvas por contraste medido (≥ 4,5:1).",
+      "Do mantener el pliego del veredicto cuadrado y con el filete superior bermellón.",
+      "Do verificar día y noche, 320/390px y 1440px, en español y en inglés."
+    ],
+    "donts": [
+      "Don't usar degradados en texto, cristal, backdrop-filter, halos ni brillos.",
+      "Don't redondear el veredicto ni convertirlo en una tarjeta flotante.",
+      "Don't añadir un segundo acento, una píldora de badge o un kicker sobre el titular.",
+      "Don't usar blanco puro o negro puro: el papel y la tinta siempre son cálidos.",
+      "Don't poner la cursiva didone en cuerpo, botones, etiquetas o resultados.",
+      "Don't usar sombras difusas sin desplazamiento ni sombras para separar bloques."
+    ]
+  }
+}

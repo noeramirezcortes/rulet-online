@@ -25,7 +25,7 @@ otra página; **no** traduce al vuelo ni comparte opciones entre idiomas.
 | --- | --- |
 | Público | Cualquier persona con un navegador moderno, en móvil o escritorio, en español o inglés |
 | Registro | No requiere cuenta ni datos personales |
-| Coste / anuncios | Ninguno |
+| Coste | Ninguno |
 | Valor diferencial | Inmediatez: abrir y girar; sin dependencias ni esperas |
 | Idiomas | Dos documentos independientes, cada uno con su `lang`, metadatos y textos |
 

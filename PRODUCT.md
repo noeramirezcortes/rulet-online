@@ -16,7 +16,7 @@ Una ruleta aleatoria gratuita que convierte una lista de opciones en una decisi�
 
 ## Positioning
 
-Instrumento de decisión instantáneo, sin registro, sin anuncios y sin servidor: las opciones y el historial se guardan solo en el navegador. Frente a las ruletas cargadas de anuncios y cuentas, gana por sobriedad y velocidad.
+Instrumento de decisión instantáneo, sin registro y sin servidor: las opciones y el historial se guardan solo en el navegador. Frente a las ruletas que exigen cuentas, gana por sobriedad y velocidad.
 
 ## Operating Context
 
@@ -33,7 +33,7 @@ Instrumento de decisión instantáneo, sin registro, sin anuncios y sin servidor
 - Sonido opcional con Web Audio (tics y fanfarria), silenciable y persistente.
 - Tema día/noche con preferencia guardada; la primera visita sigue `prefers-color-scheme`.
 - La ruleta se dibuja en `<canvas>`; los colores de las porciones viven en JavaScript, no en CSS.
-- Sin backend, sin cuentas, sin cookies y sin anuncios.
+- Sin backend, sin cuentas y sin cookies.
 - Accesibilidad: teclado, foco visible, etiquetas ARIA y `prefers-reduced-motion`.
 
 ## Brand Commitments

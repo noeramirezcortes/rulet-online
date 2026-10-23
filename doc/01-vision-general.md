@@ -13,11 +13,13 @@ El proyecto ofrece **dos versiones equivalentes**:
 
 | Idioma | Página | Lógica | Clave de datos |
 | --- | --- | --- | --- |
-| Español (`es`) | `index.html` | `app.js` | `ruleta-de-la-suerte:v1` |
-| Inglés (`en`) | `en/index.html` | `en/app.js` | `spin-the-wheel:v1` |
+| Español (`es`) | `/es/` (`public/es/index.html`) | `public/app.js` | `ruleta-de-la-suerte:v1` |
+| Inglés (`en`) | `/en/` (`public/en/index.html`) | `public/app.js` | `spin-the-wheel:v1` |
 
-El CSS es único y compartido (`styles.css`). El cambio de idioma es un enlace normal que recarga la
-otra página; **no** traduce al vuelo ni comparte opciones entre idiomas.
+Ambas páginas viven en el mismo dominio. La lógica y el CSS son únicos: `app.js` toma los textos del
+idioma indicado en `<html lang>`. La portada `/` redirige al idioma recordado o al del navegador. El
+cambio de idioma es un enlace normal que recarga la otra página; **no** traduce al vuelo ni comparte
+opciones entre idiomas.
 
 ## 2. Público y propuesta de valor
 
@@ -33,7 +35,7 @@ otra página; **no** traduce al vuelo ni comparte opciones entre idiomas.
 
 | Función | Comportamiento real | Dónde está |
 | --- | --- | --- |
-| Ruleta animada | Dibujada en `<canvas>` con giro de 5–7 vueltas y frenado suave (ease-out cuártico) | `app.js` / `en/app.js` → `spin`, `draw` |
+| Ruleta animada | Dibujada en `<canvas>` con giro de 5–7 vueltas y frenado suave (ease-out cuártico) | `app.js` → `spin`, `draw` |
 | Selección aleatoria | Índice ganador uniforme entre las opciones; el giro se calcula para que el puntero caiga dentro de esa porción con una pequeña variación | `spin()` |
 | Sonido de tics | Sintetizado con Web Audio mientras pasan porciones; arpegio final al terminar | `playTick`, `playFanfare` |
 | Silenciar | Botón en la cabecera; el estado se guarda por idioma | `soundBtn`, `updateSoundUI` |
@@ -46,7 +48,7 @@ otra página; **no** traduce al vuelo ni comparte opciones entre idiomas.
 | Historial | Últimos resultados como *chips* con su color; se muestran 10 y se guardan 12 | `renderHistory` |
 | Persistencia | Opciones, historial y silencio sobreviven a la recarga, por idioma; el tema se guarda aparte | `loadState`, `saveState` |
 | Tema día / noche | Conmutador en la cabecera, preferencia guardada y seguimiento de `prefers-color-scheme` en la primera visita | `setTheme`, `toggleTheme` |
-| Cambio de idioma | Enlace `EN`/`ES` en la cabecera; navega a la otra página | `.lang-link` |
+| Cambio de idioma | Enlace `EN`/`ES` en la cabecera; navega a la otra página y recuerda la elección (`wheel-lang`) | `.lang-link` |
 | Atajos | `Espacio` gira; `Enter` dentro del campo añade una opción | `keydown`, `<form>` |
 | Responsive | Dos columnas en escritorio; una columna en tableta/móvil | `styles.css` |
 | Accesibilidad | Foco visible, etiquetas ARIA, `aria-live` en el resultado, respeto a `prefers-reduced-motion` | ver documento 05 |
@@ -90,12 +92,12 @@ El cambio de idioma es una navegación completa, no un estado de la aplicación.
 - Datos privados por navegador e idioma: no se envían a ningún servidor.
 - Funcionamiento sin conexión tras la primera carga (si se sirve con caché normal del navegador).
 - Dos idiomas completos con metadatos `hreflang` y `og:locale`.
-- Cambio de idioma mediante enlaces relativos, sin JavaScript.
+- Cambio de idioma mediante enlaces relativos (`../en/`, `../es/`), sin depender de reglas del servidor.
 
 ### No incluido
 
-- Traducción dinámica ni un sistema i18n; los textos están duplicados en cada HTML/JS.
-- Detección automática del idioma del navegador o redirección a `/en/`.
+- Traducción dinámica ni un sistema i18n completo; los textos del HTML están duplicados en cada página
+  y los del JS viven en `LANGS`.
 - Sincronización de opciones entre idiomas (cada uno tiene su propia clave).
 - Sincronización entre dispositivos o pestañas.
 - Cuentas, backend, base de datos o analítica.

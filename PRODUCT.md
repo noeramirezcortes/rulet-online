@@ -21,8 +21,8 @@ Instrumento de decisión instantáneo, sin registro y sin servidor: las opciones
 ## Operating Context
 
 - Se usa en el móvil o el escritorio, a menudo en grupo y con prisa.
-- Dos idiomas completos: español en la raíz e inglés en `en/`, con conmutador entre ambos.
-- Sitio estático: HTML, CSS y JavaScript sin dependencias ni compilación; se abre con doble clic o se sirve desde cualquier hosting.
+- Dos idiomas completos en un solo dominio: español en `/es/` e inglés en `/en/`, con conmutador entre ambos y una portada que elige según la preferencia del navegador.
+- Sitio estático: HTML, CSS y JavaScript sin dependencias ni compilación; se sirve desde cualquier hosting estático (carpeta `public/`).
 - Persistencia en `localStorage`: opciones, historial, sonido y tema.
 - Atajos: `Espacio` gira y `Enter` añade una opción.
 

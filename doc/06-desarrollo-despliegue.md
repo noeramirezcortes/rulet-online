@@ -8,83 +8,140 @@
 
 ## 2. Ejecutar en local
 
-### Opción A — abrir los archivos
-
-Doble clic en `index.html` (español) o en `en/index.html` (inglés). Funciona porque no hay módulos ES,
-`fetch` ni rutas absolutas. Limitación: `localStorage` en `file://` puede comportarse de forma distinta
-según el navegador (origen opaco, datos por archivo o bloqueados).
-
-### Opción B — servidor estático
+El sitio es la carpeta `public/`. Las páginas usan rutas como `/es/` y `/en/` y el enlace de idioma
+sale de una carpeta a otra, así que **necesita un servidor estático** (abrir los archivos con doble
+clic ya no basta).
 
 ```powershell
 # Python
-python -m http.server 8000
+python -m http.server 8000 --directory public
 
 # Node.js (descarga `serve` la primera vez)
-npx serve .
+npx serve public
 ```
 
-Abre `http://localhost:8000` (ES) y `http://localhost:8000/en/` (EN). También vale la extensión
-*Live Server* de VS Code.
+Abre `http://localhost:8000` (portada, redirige a `/es/` o `/en/`), `http://localhost:8000/es/` y
+`http://localhost:8000/en/`. También vale la extensión *Live Server* de VS Code abriendo `public/`.
 
-### Opción C — cualquier servidor
-
-Sirve la carpeta tal cual. No hay reescrituras de rutas ni configuración especial. Es importante
-mantener la estructura: `en/index.html` carga `../styles.css` y `en/app.js`.
+Estos servidores **no aplican `_headers`**: en local no se ve la CSP. Para probarla, sirve `public/` con
+un servidor que añada esas cabeceras (o prueba en un despliegue de vista previa de Cloudflare Pages).
 
 ## 3. Desplegar
 
-| Plataforma | Pasos | Notas |
-| --- | --- | --- |
-| **Netlify Drop** | Arrastrar la carpeta a <https://app.netlify.com/drop> | Publica la raíz, incluida `en/`; no hay build |
-| **GitHub Pages** | Subir los archivos → *Settings → Pages* → rama/carpeta raíz | Mantener `en/` y `styles.css` en la raíz |
-| **Vercel** | Importar el repositorio, framework «Other», sin build | Directorio de salida: raíz |
-| **Cloudflare Pages** | Conectar repo, build vacío, salida `/` | — |
-| **Hosting compartido / FTP** | Subir `index.html`, `app.js`, `styles.css`, `assets/fonts/` y la carpeta `en/` | `preview.png` y `doc/` son opcionales |
+### Cloudflare Pages (despliegue actual)
+
+| Ajuste | Valor |
+| --- | --- |
+| Repositorio | `noeramirezcortes/rulet-online`, rama `main` |
+| Comando de build | vacío |
+| **Directorio de salida (*Build output directory*)** | **`public`** |
+| Dominio personalizado | `ruleta.yadale.click` (el único dominio de la app) |
+
+Qué hace Pages con los archivos de `public/`:
+
+- `_headers` se aplica como cabeceras HTTP (y no se publica como archivo).
+- `404.html` se sirve en las rutas inexistentes. Sin él, Pages trata el sitio como una SPA y responde
+  `200` con la portada en cualquier URL.
+- `/es` → `/es/` y `/en/index.html` → `/en/` (URLs limpias) se resuelven solos.
+
+**Solo se publica `public/`.** Antes de este cambio se servía la raíz del repositorio, de modo que
+`doc/`, `PRODUCT.md`, `DESIGN.md` y `.impeccable/` eran accesibles desde internet.
+
+#### Un solo dominio: reglas en Cloudflare
+
+El subdominio inglés antiguo (`roulette.yadale.click`) **no se elimina**: se deja como redirección
+permanente para no romper enlaces ni buscadores.
+
+1. *Rules → Redirect Rules*: sustituye la regla actual de `roulette.yadale.click` (que mandaba `/` a
+   `/en/` con 302) por una única regla:
+   - Si el *hostname* es igual a `roulette.yadale.click` → redirección **estática**, código **301**, a
+     `https://ruleta.yadale.click/en/`, sin conservar la cadena de consulta.
+2. Mantén el dominio `roulette.yadale.click` asociado (registro DNS con proxy) mientras la regla deba
+   funcionar. Si el dominio se quitara de Pages y del DNS, los enlaces antiguos dejarían de resolver.
+3. En *SSL/TLS → Edge Certificates* conviene tener *Always Use HTTPS* activado.
+
+#### Orden recomendado al migrar
+
+1. En Pages, cambia el directorio de salida a `public` **antes** de fusionar el cambio (si se fusiona
+   primero, la compilación no encuentra `public/` o publica una raíz vacía; el despliegue anterior
+   sigue activo mientras no haya uno nuevo correcto).
+2. Fusiona el PR a `main` y espera al despliegue.
+3. Comprueba las rutas (lista de abajo).
+4. Cambia la regla de redirección del subdominio inglés.
+5. En Google Search Console, envía `https://ruleta.yadale.click/sitemap.xml`.
 
 Comprobaciones tras publicar:
 
-- `https://tu-dominio.com/` carga la versión española.
-- `https://tu-dominio.com/en/` carga la inglesa con estilos (si no, falta `styles.css` en la raíz).
-- El enlace `EN`/`ES` de la cabecera lleva a la otra versión.
-- No hay errores 404 en la consola.
+- `https://ruleta.yadale.click/` redirige a `/es/` o `/en/` según tu navegador (prueba una ventana
+  privada con el idioma del navegador cambiado).
+- `/es/` y `/en/` cargan con estilos y sin errores en la consola (incluidos avisos de CSP).
+- El botón `EN`/`ES` cambia de idioma y `/` recuerda la elección.
+- `https://roulette.yadale.click/` y `https://roulette.yadale.click/cualquier-ruta` dan **301** a
+  `https://ruleta.yadale.click/en/`.
+- `https://ruleta.yadale.click/doc/README.md`, `/PRODUCT.md` y `/.impeccable/config.json` dan **404**.
+- Una ruta inventada devuelve **404** con la página 404 (no `200`).
+- Las cabeceras de `/es/` incluyen `Content-Security-Policy`, `X-Content-Type-Options`, etc.
+  (`curl -sI https://ruleta.yadale.click/es/`).
 
-Recomendaciones:
+### Otros hosts
 
-- Publica solo lo necesario; evita subir `.agents/`, `.devin/`, `.vibe/`, `skills-lock.json` y `doc/`.
-- `index.html` y `en/index.html` con `Cache-Control: no-cache` o vida corta; CSS/JS pueden cachearse
-  más, pero al no llevar *hash* en el nombre conviene una vida corta o añadir `?v=...`.
-- No se necesitan cabeceras CORS, CSP especial ni redirecciones. Si añades CSP, permite `'self'` para
-  scripts, estilos y fuentes, `data:` para el favicon y un *hash* o `'unsafe-inline'` para el script
-  mínimo del `<head>` que fija el tema antes de pintar; el audio y el canvas no requieren permisos.
-- Las fuentes van en `assets/fonts/` y se sirven desde el propio dominio: no hay que configurar CORS,
-  pero sí conviene cachearlas con una vida larga (llevan el peso en el nombre y no cambian).
-- HTTPS no es obligatorio para que funcione, pero es lo esperable en cualquier hosting moderno.
+| Plataforma | Pasos | Notas |
+| --- | --- | --- |
+| **Netlify** | Publicar la carpeta `public` | Lee también `_headers`; para 404 usa `404.html` |
+| **GitHub Pages** | Publicar `public` (acción de despliegue o rama `gh-pages`) | No lee `_headers`: sin CSP |
+| **Vercel** | Framework «Other», directorio de salida `public` | Las cabeceras van en `vercel.json` |
+| **Hosting compartido / FTP** | Subir el **contenido** de `public/` | Las cabeceras van en `.htaccess` o la configuración del servidor |
+
+### Cabeceras de seguridad (`public/_headers`)
+
+| Cabecera | Valor | Para qué |
+| --- | --- | --- |
+| `Content-Security-Policy` | `default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'` | Solo se permite lo del propio dominio; sin scripts ni estilos en línea; el favicon `data:` está permitido. Bloquea inyección de scripts y *clickjacking* |
+| `X-Content-Type-Options` | `nosniff` | El navegador respeta el tipo MIME declarado |
+| `X-Frame-Options` | `DENY` | Refuerzo de `frame-ancestors` en navegadores antiguos |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | No filtra rutas a otros sitios |
+| `Permissions-Policy` | cámara, micrófono, geolocalización, pago y USB desactivados | La app no los usa |
+| `Cross-Origin-Opener-Policy` / `Cross-Origin-Resource-Policy` | `same-origin` | Aísla la página y sus recursos |
+| `Strict-Transport-Security` | `max-age=31536000` | Obliga a HTTPS durante un año |
+| `Cache-Control` (solo `/assets/fonts/*`) | `public, max-age=31536000, immutable` | Las fuentes no cambian |
+
+Consecuencias de la CSP al desarrollar:
+
+- **No añadas `<script>` ni `<style>` en línea ni atributos `style="…"`**: se bloquearían. Usa archivos
+  propios (por eso el script del tema es `theme.js`). Asignar estilos desde JS (`el.style.x = …`,
+  `setProperty`) sí está permitido.
+- No cargues nada de otros dominios (analítica, fuentes, CDN) sin ampliar la política. La analítica
+  web de Cloudflare inyecta un script externo: quedaría bloqueada hasta permitir `static.cloudflareinsights.com`.
+- Si añades `fetch`, hay que abrir `connect-src`.
+
+El HTML y los JS/CSS usan el `Cache-Control` por defecto de Pages (`max-age=0, must-revalidate`, con
+ETag): se revalidan en cada visita, sin riesgo de servir versiones viejas.
 
 ## 4. Personalización
 
-> Los cambios de lógica deben replicarse en **`app.js` y `en/app.js`**. Los textos, en
-> **`index.html` y `en/index.html`**. `styles.css` es compartido.
+> La lógica (`public/app.js`) y el CSS (`public/styles.css`) son únicos. Los textos viven en `LANGS`
+> (dentro de `app.js`) y en `public/es/index.html` y `public/en/index.html`.
 
 | Cambio | Archivo | Instrucciones |
 | --- | --- | --- |
-| Opciones iniciales | `app.js`, `en/app.js` | Edita `DEFAULT_OPTIONS` en cada idioma. Afecta también a «Reiniciar» |
-| Colores de la ruleta | `app.js`, `en/app.js` | Edita `THEMES.day` y `THEMES.night` en ambos. Se usan en porciones, puntos, chips y confeti |
-| Máximo de opciones | `app.js`, `en/app.js` | `MAX_OPTIONS`. El contador se actualiza solo |
-| Longitud máxima de una opción | `index.html`, `en/index.html`, ambos JS | Cambia el `maxlength` y los dos `slice(0, 40)` de cada JS |
-| Claves de almacenamiento | `app.js`, `en/app.js` | `STORAGE_KEY` por idioma y `THEME_KEY` compartida; cambiarlas invalida los datos |
-| Velocidad / vueltas | `app.js`, `en/app.js` | `turns`, `duration` y los valores de `reduced()` dentro de `spin` |
-| Confeti | `app.js`, `en/app.js` | `60` móvil / `100` escritorio en `burstConfetti` |
-| Sonido | `app.js`, `en/app.js` | Frecuencias, tipos de onda y ganancias en `playTick` / `playFanfare` |
-| Tema visual | `styles.css` | Tokens de `:root` (día) y `[data-theme="night"]` (noche); afecta a ambos idiomas |
-| Tipografía | `styles.css`, `assets/fonts/` | Sustituye los woff2 y actualiza los `@font-face` y los `preload` del `<head>` |
-| Enlace de idioma | `index.html`, `en/index.html`, `styles.css` | Texto `EN`/`ES`, `href`, `hreflang` y estilos de `.lang-link` |
-| Puntos de ruptura | `styles.css` | 1020 px y 640 px |
-| Textos, título y SEO | `index.html`, `en/index.html` | `<title>`, `meta description`, OG, hero, footer |
-| Favicon | `index.html`, `en/index.html` | SVG en data URI |
-| Imagen para redes | Ambos HTML | No hay `og:image`; puedes añadir `preview.png` con URL absoluta |
+| Opciones iniciales | `public/app.js` | Edita `defaults` de cada idioma en `LANGS`. Afecta también a «Reiniciar» |
+| Colores de la ruleta | `public/app.js` | Edita `GEMS` (y `THEMES.day` / `THEMES.night`). Se usan en porciones, puntos, chips y confeti |
+| Máximo de opciones | `public/app.js` | `MAX_OPTIONS`. El contador se actualiza solo |
+| Longitud máxima de una opción | ambos HTML y `public/app.js` | Cambia el `maxlength` y los `slice(0, 40)` |
+| Claves de almacenamiento | `public/app.js` | `storageKey` por idioma en `LANGS`; `THEME_KEY` y `LANG_KEY` compartidas; cambiarlas invalida los datos |
+| Velocidad / vueltas | `public/app.js` | `turns`, `duration` y los valores de `reduced()` dentro de `spin` |
+| Confeti | `public/app.js` | `60` móvil / `100` escritorio en `burstConfetti` |
+| Sonido | `public/app.js` | Frecuencias, tipos de onda y ganancias en `playTick` / `playFanfare` |
+| Tema visual | `public/styles.css` | Tokens de `:root` (día) y `[data-theme="night"]` (noche); afecta a ambos idiomas |
+| Tipografía | `public/styles.css`, `public/assets/fonts/` | Sustituye los woff2 y actualiza los `@font-face` y los `preload` de los tres HTML |
+| Enlace de idioma | ambos HTML de idioma, `public/styles.css` | `href` relativo (`../en/`, `../es/`), `hreflang` y estilos de `.lang-link` |
+| Dominio | `public/` | Reemplaza `https://ruleta.yadale.click` en `es/index.html`, `en/index.html`, `index.html`, `sitemap.xml` y `robots.txt` |
+| Textos, título y SEO | `public/es/index.html`, `public/en/index.html` | `<title>`, `meta description`, OG, `canonical`, hero, footer |
+| Favicon | los tres HTML y `404.html` | SVG en data URI (permitido por `img-src data:`) |
+| Imagen para redes | los HTML de idioma | No hay `og:image`; añade una imagen de 1200×630 con URL absoluta |
+| Añadir un idioma | `public/<código>/index.html`, `LANGS`, `sitemap.xml`, `hreflang` de todas las páginas, `gate.js`, `.lang-link` | Ver [07 · Decisiones](07-decisiones-limitaciones.md) |
 
-> **Coherencia de color:** la paleta de la ruleta está en ambos JS y el resto del tema en CSS. Si cambias
+> **Coherencia de color:** la paleta de la ruleta está en `app.js` y el resto del tema en CSS. Si cambias
 > una, revisa la otra.
 
 ## 5. Depuración
@@ -121,7 +178,7 @@ location.reload();
 - **DevTools → Rendering → Emulate CSS media feature `prefers-reduced-motion`**: probar el modo reducido
   (el CSS reacciona al instante; `reduced()` consulta la preferencia en cada giro).
 - **DevTools → Performance**: revisar frames durante el giro y el confeti.
-- **Lighthouse / axe**: accesibilidad, contraste y buenas prácticas, en `/` y `/en/`.
+- **Lighthouse / axe**: accesibilidad, contraste y buenas prácticas, en `/es/` y `/en/`.
 - **Consola**: los errores de `localStorage` se silencian a propósito; para depurarlos, pon un
   `console.log` temporal en los `catch` de `loadState`/`saveState`.
 
@@ -136,8 +193,10 @@ location.reload();
 | El resultado no coincide con la porción | Se tocó la geometría (`target`, `getIndexAtPointer`, sentido de giro) |
 | No hay sonido | Navegador sin Web Audio, contexto suspendido o `muted = true` |
 | El confeti no aparece | `prefers-reduced-motion` activo o canvas `#fx` sin tamaño |
-| La versión EN no tiene estilos | Falta `styles.css` en la raíz o se movió `en/index.html` |
-| El enlace de idioma da 404 | No se desplegó la carpeta `en/` (o el `href` cambió) |
+| La versión EN no tiene estilos | Se desplegó una carpeta distinta de `public/` o se movió `en/index.html` (carga `../styles.css`) |
+| El enlace de idioma da 404 | No se desplegó `public/en/` o `public/es/` (o el `href` cambió) |
+| La página queda sin estilos o sin script y la consola habla de «Content Security Policy» | Se añadió un `<script>`/`<style>`/`style="…"` en línea o un recurso externo; ver «Cabeceras de seguridad» |
+| `/` no redirige | `gate.js` bloqueado o JavaScript desactivado: se ven los dos botones de idioma (comportamiento esperado) |
 | Cambiar de idioma «pierde» las opciones | Es el comportamiento actual: cada idioma usa su clave |
 
 ## 6. Plan de pruebas manual
@@ -146,10 +205,10 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 
 | # | Caso | Resultado esperado |
 | ---: | --- | --- |
-| 1 | Primera visita a `/` sin datos | 8 opciones de ejemplo en español, contador `8/20`, resultado `—`, historial vacío, tema según el sistema |
+| 1 | Primera visita a `/es/` sin datos | 8 opciones de ejemplo en español, contador `8/20`, resultado `—`, historial vacío, tema según el sistema |
 | 2 | Primera visita a `/en/` sin datos | 8 opciones en inglés, textos en inglés, contador `8/20`, tema según el sistema |
-| 3 | Enlace `EN` desde la portada | Navega a `en/index.html`; la página tiene `lang="en"` y estilos |
-| 4 | Enlace `ES` desde `/en/` | Vuelve a `index.html` con `lang="es"` |
+| 3 | Enlace `EN` desde `/es/` | Navega a `/en/`; la página tiene `lang="en"` y estilos; guarda `wheel-lang=en` |
+| 4 | Enlace `ES` desde `/en/` | Navega a `/es/` con `lang="es"`, sin pasar por redirecciones (también con el subdominio inglés antiguo ya redirigido) |
 | 5 | Añadir opciones en ES y cambiar a EN | La lista inglesa es independiente (y viceversa) |
 | 6 | Añadir con `Enter` | La opción aparece al final, el input se vacía y mantiene el foco |
 | 7 | Añadir con el botón `+` | Igual que el anterior |
@@ -175,7 +234,10 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 | 27 | Movimiento reducido | Giro de ~0,65 s y 2 vueltas, sin confeti |
 | 28 | JavaScript desactivado | Se muestra el aviso `<noscript>` en el idioma de la página |
 | 29 | Sin red tras cargar | La app sigue funcionando con los archivos y fuentes ya cacheados |
-| 30 | Revisar el código fuente | `hreflang="es"`/`"en"` y `og:locale` correctos en cada página |
+| 30 | Revisar el código fuente | `canonical` propio, `hreflang` es/en/x-default absolutos y `og:locale` correctos en cada página |
+| 35 | Abrir `/` con navegador en español, inglés y otro idioma | Redirige a `/es/`, `/en/` y `/en/`; con `wheel-lang` guardado manda siempre a ese idioma |
+| 36 | Abrir una ruta inexistente | Página 404 con enlaces a los dos idiomas y código HTTP 404 |
+| 37 | Consola con la página cargada (en el despliegue) | Sin avisos de CSP ni 404 |
 | 31 | Primera visita con el sistema en oscuro | Arranca en noche; con el sistema en claro, en día |
 | 32 | Cambiar de tema y recargar | La preferencia se conserva y se comparte entre ES y EN |
 | 33 | Cambiar `prefers-color-scheme` con la página abierta | Sigue el sistema solo si no hay preferencia guardada |
@@ -188,8 +250,8 @@ No hay tests automatizados. Checklist mínima antes de publicar cambios:
 - **Peso**: ~127 KB iniciales sin comprimir (unos 57 KB de HTML + CSS + JS y 71 KB de las dos fuentes
   latinas precargadas). Las variantes cursiva y latín-ext se descargan solo si se necesitan.
   `preview.png` no se carga.
-- **CSS compartido**: al cambiar de idioma, `styles.css` y las fuentes suelen estar en caché; solo se
-  descargan el HTML y el JS de la otra versión.
+- **Recursos compartidos**: al cambiar de idioma, `styles.css`, `app.js`, `theme.js` y las fuentes ya
+  están en caché; solo se descarga el HTML de la otra versión.
 - **Dibujo**: la ruleta solo se redibuja al girar, cambiar opciones, cambiar de tema o redimensionar.
   No hay bucle permanente.
 - **Confeti**: máximo 100 flecos, un solo `requestAnimationFrame`, se detiene al vaciarse.
@@ -224,15 +286,16 @@ transpilación; el código usa `const/let`, arrow functions, template literals, 
 
 Checklist al modificar:
 
-1. Mantener sincronizados los IDs de ambos HTML y el objeto `els` de ambos JS.
-2. **Replicar los cambios de lógica en `app.js` y `en/app.js`** (o extraer un módulo compartido).
+1. Mantener sincronizados los IDs de ambos HTML de idioma y el objeto `els` de `app.js`.
+2. Mantener las entradas `es` y `en` de `LANGS` con las mismas claves de `copy`.
 3. Si cambias el esquema guardado, actualizar `loadState`, `saveState`, este documento y el README.
 4. Si cambias `MAX_OPTIONS`, revisar el texto `0/20` inicial de ambos HTML y el `maxlength` si aplica.
+   Si añades scripts, estilos o recursos nuevos, ajusta la CSP de `public/_headers`.
 5. Si cambias `THEMES.day`/`THEMES.night` o los tokens de color, comprueba el contraste real de las
    etiquetas del canvas (las resuelve `labelColor`), el puntero, el hub y los chips del historial, en
-   día y en noche. Mantén alineadas la paleta de los dos JS y los tokens de `styles.css`.
+   día y en noche. Mantén alineadas la paleta de `app.js` y los tokens de `styles.css`.
 6. Probar el giro con 2, 8, 13 y 20 opciones (los casos de color y tamaño de fuente cambian).
-7. Repetir el plan de pruebas manual en ES y, al menos, los casos clave en EN.
+7. Repetir el plan de pruebas manual en `/es/` y, al menos, los casos clave en `/en/`.
 8. Verificar móvil real o emulación a 360 px.
 9. Revisar que no se hayan añadido peticiones de red accidentales (privacidad y offline).
 10. Mantener el README sincronizado; ya describe la estructura, las fuentes autoalojadas, los dos
@@ -240,8 +303,8 @@ Checklist al modificar:
 
 ## 10. Control de versiones
 
-El repositorio está inicializado en git. `main` conserva la versión española original, la versión
-inglesa con selector de idioma, la documentación y el enlace a ella desde el README. El diseño
+El repositorio está inicializado en git. `main` contiene el sitio bilingüe en `public/`, la
+documentación y el enlace a ella desde el README. El diseño
 **Aurora** (vidrio, aurora y bisel cromado) es el vigente en `main`; el diseño anterior, «almanaque
 editorial», sigue en el historial y en la rama `rediseno-almanaque`. El número exacto de
 commits puede variar:

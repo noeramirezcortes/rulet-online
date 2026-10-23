@@ -2,49 +2,92 @@
   "use strict";
 
   /* ============================================================
-     Spin the wheel — HTML, CSS and JavaScript with no dependencies
+     Ruleta de la suerte / Spin the wheel — HTML, CSS y JavaScript sin dependencias
      ============================================================ */
 
   const TAU = Math.PI * 2;
-  const STORAGE_KEY = "spin-the-wheel:v1";
   const THEME_KEY = "ruleta-theme";
+  const LANG_KEY = "wheel-lang";
   const MAX_OPTIONS = 20;
+  const HEX = /^#[0-9a-f]{3,8}$/i;
   const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
   const reduced = () => reducedQuery.matches;
   const FONT = '"Manrope", "Segoe UI", system-ui, sans-serif';
 
-  const DEFAULT_OPTIONS = [
-    "Pizza", "Sushi", "Burger", "Tacos",
-    "Salad", "Pasta", "Ramen", "Ice cream"
-  ];
+  /* ============================ Idiomas ============================ */
 
-  /* ============================ Copia ============================ */
-
-  const plural = new Intl.PluralRules("en");
-
-  const COPY = {
-    themeToNight: "Switch to night mode",
-    themeToDay: "Switch to day mode",
-    mute: "Mute sound",
-    unmute: "Unmute sound",
-    statusIdle: "Waiting",
-    statusSpinning: "Spinning",
-    statusDone: "Decided",
-    metaIdle: "Spin the wheel to hear the verdict.",
-    metaSpinning: "The wheel is turning…",
-    metaDone: "Chance has spoken. Spin again if you don't like it.",
-    needTwo: "Add at least two options to spin",
-    maxOptions: (max) => `You can add up to ${max} options`,
-    emptyOption: "Type an option first",
-    shuffled: "Options shuffled",
-    resetConfirm: "Reset the wheel, the verdict and the history?",
-    resetDone: "Back to the starting point",
-    removeOption: (label) => `Remove ${label}`,
-    hubCount: (n) => `${n} ${plural.select(n) === "one" ? "option" : "options"}`,
-    wheelAria: (n, list) => (n ? `Wheel with ${n} options: ${list}` : "Empty wheel")
+  // Cada página fija su idioma con <html lang>. Aquí viven los textos de los dos.
+  const LANGS = {
+    es: {
+      storageKey: "ruleta-de-la-suerte:v1",
+      defaults: [
+        "Pizza", "Sushi", "Hamburguesa", "Tacos",
+        "Ensalada", "Pasta", "Ramen", "Helado"
+      ],
+      copy: (() => {
+        const plural = new Intl.PluralRules("es");
+        return {
+          themeToNight: "Activar modo noche",
+          themeToDay: "Activar modo día",
+          mute: "Silenciar sonido",
+          unmute: "Activar sonido",
+          statusIdle: "En espera",
+          statusSpinning: "Girando",
+          statusDone: "Resuelto",
+          metaIdle: "Gira la ruleta para conocer el veredicto.",
+          metaSpinning: "La rueda está girando…",
+          metaDone: "La suerte ha hablado. Gira otra vez si no te convence.",
+          needTwo: "Añade al menos dos opciones para girar",
+          maxOptions: (max) => `Puedes añadir hasta ${max} opciones`,
+          emptyOption: "Escribe una opción primero",
+          shuffled: "Opciones barajadas",
+          resetConfirm: "¿Reiniciar la ruleta, el veredicto y el historial?",
+          resetDone: "De vuelta al principio",
+          removeOption: (label) => `Quitar ${label}`,
+          hubCount: (n) => `${n} ${plural.select(n) === "one" ? "opción" : "opciones"}`,
+          wheelAria: (n, list) => (n ? `Ruleta con ${n} opciones: ${list}` : "Ruleta vacía")
+        };
+      })()
+    },
+    en: {
+      storageKey: "spin-the-wheel:v1",
+      defaults: [
+        "Pizza", "Sushi", "Burger", "Tacos",
+        "Salad", "Pasta", "Ramen", "Ice cream"
+      ],
+      copy: (() => {
+        const plural = new Intl.PluralRules("en");
+        return {
+          themeToNight: "Switch to night mode",
+          themeToDay: "Switch to day mode",
+          mute: "Mute sound",
+          unmute: "Unmute sound",
+          statusIdle: "Waiting",
+          statusSpinning: "Spinning",
+          statusDone: "Decided",
+          metaIdle: "Spin the wheel to hear the verdict.",
+          metaSpinning: "The wheel is turning…",
+          metaDone: "Chance has spoken. Spin again if you don't like it.",
+          needTwo: "Add at least two options to spin",
+          maxOptions: (max) => `You can add up to ${max} options`,
+          emptyOption: "Type an option first",
+          shuffled: "Options shuffled",
+          resetConfirm: "Reset the wheel, the verdict and the history?",
+          resetDone: "Back to the starting point",
+          removeOption: (label) => `Remove ${label}`,
+          hubCount: (n) => `${n} ${plural.select(n) === "one" ? "option" : "options"}`,
+          wheelAria: (n, list) => (n ? `Wheel with ${n} options: ${list}` : "Empty wheel")
+        };
+      })()
+    }
   };
 
-/* ============================ Fin de copia ============================ */
+  const LANG = document.documentElement.lang.slice(0, 2) in LANGS
+    ? document.documentElement.lang.slice(0, 2)
+    : "es";
+  const { storageKey: STORAGE_KEY, defaults: DEFAULT_OPTIONS, copy: COPY } = LANGS[LANG];
+
+  /* ============================ Fin de idiomas ============================ */
 
   // Los colores viven sobre un pozo oscuro, así que la paleta es la misma de día y de noche.
   const GEMS = [
@@ -192,10 +235,10 @@
           .filter((h) => h && typeof h.label === "string")
           .slice(0, 12)
           .map((h) => ({
-            label: h.label,
+            label: h.label.slice(0, 40),
             // El historial antiguo conserva colores de otra paleta: se reasigna
             // al color actual de la opción cuando sigue existiendo.
-            color: theme.palette[options.indexOf(h.label)] || h.color || theme.palette[0]
+            color: theme.palette[options.indexOf(h.label)] || (HEX.test(h.color) ? h.color : theme.palette[0])
           }));
       }
 
@@ -811,6 +854,15 @@
   els.shuffleBtn.addEventListener("click", shuffleOptions);
   els.resetBtn.addEventListener("click", resetAll);
   if (els.themeBtn) els.themeBtn.addEventListener("click", toggleTheme);
+
+  // Elegir el otro idioma se recuerda: la portada («/») lo usa para redirigir.
+  document.querySelector(".lang-link")?.addEventListener("click", (event) => {
+    try {
+      localStorage.setItem(LANG_KEY, event.currentTarget.getAttribute("hreflang"));
+    } catch {
+      /* Sin almacenamiento: la portada decide por el idioma del navegador. */
+    }
+  });
 
   els.soundBtn.addEventListener("click", () => {
     muted = !muted;

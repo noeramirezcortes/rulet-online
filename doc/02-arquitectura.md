@@ -4,28 +4,35 @@
 
 | Capa | Tecnología | Notas |
 | --- | --- | --- |
-| Estructura | HTML5 semántico | Dos documentos independientes: español e inglés |
+| Estructura | HTML5 semántico | Un documento por idioma (`/es/`, `/en/`) y una portada `/` que redirige |
 | Presentación | CSS3 puro | Una sola hoja **compartida** por ambos idiomas |
-| Lógica | JavaScript (ES2019 aprox.) | Dos copias: `app.js` y `en/app.js`, IIFE con `"use strict"` |
+| Lógica | JavaScript (ES2019 aprox.) | Un solo `app.js` (IIFE con `"use strict"`); los textos de cada idioma están en `LANGS` |
 | Dibujo | Canvas 2D | Dos canvas por página: ruleta (`#wheelCanvas`) y confeti (`#fx`) |
 | Audio | Web Audio API | Osciladores en tiempo real; sin archivos |
-| Persistencia | `localStorage` | Una clave por idioma, mismo esquema |
-| Build | Ninguno | Sin transpilación, bundler, minificado ni tests |
+| Persistencia | `localStorage` | Una clave por idioma, mismo esquema, y dos compartidas (`ruleta-theme`, `wheel-lang`) |
+| Build | Ninguno | Sin transpilación, bundler, minificado ni tests; Cloudflare Pages publica `public/` tal cual |
+| Servidor | Cloudflare Pages | `_headers` (CSP estricta, `nosniff`, HSTS…), `404.html`, URLs limpias |
 
-**No hay dependencias externas.** Las tipografías se sirven desde `assets/fonts/`; no hay CDN,
-service worker ni `fetch`.
+**No hay dependencias externas.** Las tipografías se sirven desde `public/assets/fonts/`; no hay CDN,
+service worker ni `fetch`. Por eso la CSP puede ser `default-src 'none'` con `script-src 'self'`: no
+hay scripts ni estilos en línea (el script del tema es `theme.js`).
 
 ## 2. Estructura del repositorio
 
 ```text
 herraminetasweb/
-├─ index.html          Documento español (raíz)
-├─ app.js              Lógica española
-├─ en/
-│  ├─ index.html       Documento inglés
-│  └─ app.js           Lógica inglesa (copia traducida)
-├─ styles.css          Estilos compartidos por ambos idiomas
-├─ assets/fonts/       Unbounded y Manrope autoalojadas (4 woff2)
+├─ public/             Raíz del sitio: lo único que se publica
+│  ├─ index.html       Portada «/»: enlaces a ambos idiomas + redirección (gate.js)
+│  ├─ es/index.html    Documento español
+│  ├─ en/index.html    Documento inglés
+│  ├─ 404.html         Página de error (noindex)
+│  ├─ app.js           Lógica y textos de los dos idiomas
+│  ├─ styles.css       Estilos compartidos por ambos idiomas
+│  ├─ theme.js         Fija el tema antes del primer pintado
+│  ├─ gate.js          Redirección de la portada por idioma
+│  ├─ assets/fonts/    Unbounded y Manrope autoalojadas (4 woff2)
+│  ├─ _headers         Cabeceras de seguridad y caché
+│  └─ robots.txt, sitemap.xml
 ├─ preview.png         Captura 1440×1320 usada en el README
 ├─ README.md           Guía breve de uso y personalización
 ├─ PRODUCT.md          Verdad de producto
@@ -39,19 +46,25 @@ herraminetasweb/
 └─ (sin package.json, sin tests)
 ```
 
-La aplicación se compone de **cinco archivos**: dos HTML, dos JS y un CSS, más las fuentes
-autoalojadas. `preview.png`, los documentos de producto/diseño y las carpetas de skills son accesorios.
+La aplicación se compone de **`public/`**: dos HTML de aplicación, `app.js`, `styles.css` y las fuentes,
+más la portada, `theme.js`, `gate.js`, la 404 y los archivos de servidor. Lo demás (`doc/`,
+`preview.png`, los documentos de producto/diseño y las carpetas de skills) no se publica.
 
 ## 3. Separación de responsabilidades
 
 ```text
-index.html (ES)                 en/index.html (EN)
+es/index.html (ES)               en/index.html (EN)
   ├─ mismo esqueleto y mismos IDs     ├─ mismo esqueleto y mismos IDs
   ├─ textos y metadatos en español    ├─ textos y metadatos en inglés
   ├─ <html lang="es">                 ├─ <html lang="en">
-  ├─ enlace EN → en/index.html        ├─ enlace ES → ../index.html
-  ├─ <script src="app.js">            ├─ <script src="app.js">
-  └─ <link styles.css>                └─ <link ../styles.css>
+  ├─ enlace EN → ../en/               ├─ enlace ES → ../es/
+  ├─ <script src="../app.js">         ├─ <script src="../app.js">
+  ├─ <link ../styles.css>             ├─ <link ../styles.css>
+  └─ canonical, hreflang (es, en, x-default) y og:url absolutos
+
+index.html («/»)
+  ├─ enlaces a es/ y en/ (funciona sin JavaScript)
+  └─ gate.js: location.replace al idioma de `wheel-lang` o de navigator.languages
 
 styles.css (compartido)
   ├─ :root (día) y [data-theme="night"] con tokens de diseño
@@ -62,7 +75,8 @@ styles.css (compartido)
   ├─ componentes de cabecera: .masthead, .masthead__actions, .lang-link
   └─ media queries (1020px, 760px, 640px, prefers-reduced-motion, forced-colors)
 
-app.js (ES)  ≈  en/app.js (EN)
+app.js (único)
+  ├─ LANGS: clave, opciones iniciales y textos de es y en; elige con <html lang>
   ├─ localiza elementos por ID (objeto `els`)
   ├─ mantiene el estado en variables de módulo
   ├─ renderiza lista, historial y canvas de forma imperativa
@@ -70,42 +84,43 @@ app.js (ES)  ≈  en/app.js (EN)
   └─ no exporta nada: todo vive dentro de la IIFE
 ```
 
-`en/index.html` reutiliza `../styles.css`, de modo que cualquier cambio visual afecta a ambos idiomas.
-En cambio, cada JS lleva sus propios textos, opciones por defecto y clave de almacenamiento.
+Ambas páginas reutilizan `../styles.css` y `../app.js`, de modo que cualquier cambio visual o de lógica
+afecta a los dos idiomas. Lo propio de cada idioma son el HTML y su entrada de `LANGS` (textos, opciones
+por defecto y clave de almacenamiento).
 
 ### Contrato HTML ↔ JS
 
 - **IDs obligatorios** (si falta uno, `els.x` es `null` y la app falla al usarlo): ver tabla en
   [03 · Referencia de código](03-referencia-codigo.md#3-mapa-de-elementos-del-dom).
-- **Los IDs son idénticos en ambos idiomas**, lo que permite que los dos JS sean casi intercambiables.
+- **Los IDs son idénticos en ambos idiomas**, porque ambos HTML cargan el mismo `app.js`.
 - **Clases generadas por JS**: `.option`, `.option__dot`, `.option__label`, `.option__remove`,
   `.chip`, `.chip__dot` y las 24 bombillas `<i>` dentro de `#bulbs` (`buildBulbs`).
 - **Atributos de estado**: `#resultCard[data-state]`, `.wheel.is-spinning`, `.result__value.is-win`,
   `.toast.is-visible`, `#soundBtn[aria-pressed]`, `#spinBtn[aria-disabled]`, `#optionInput[aria-invalid]`.
 - **Variables CSS inyectadas**: `--c` (punto de color de opción/chip), `--win` (color del resultado,
   fijado por `setWin` en `#resultCard` y `#wheel`) y `--i` (índice de cada bombilla).
-- **Enlace de idioma**: `.lang-link` es HTML estático; JS no lo toca. El tema se refleja en
+- **Enlace de idioma**: `.lang-link` es HTML estático; JS solo guarda su `hreflang` en `wheel-lang` al
+  hacer clic. El tema se refleja en
   `html[data-theme]` y en `#themeBtn[aria-pressed]`.
 
-## 4. Módulos internos de cada `app.js`
+## 4. Módulos internos de `app.js`
 
-Ambos archivos comparten la misma estructura, orden de secciones y numeración de líneas (las
-diferencias son textos, `plural`, `STORAGE_KEY` y algunas opciones por defecto):
+Numeración de `public/app.js`:
 
 | Líneas | Sección | Responsabilidad |
 | --- | --- | --- |
-| 1–59 | Arranque | `"use strict"`, constantes, `plural`, `COPY`, `GEMS`, `THEMES` |
-| 61–104 | Referencias y estado | `els`, contextos de canvas, variables de módulo |
-| 106–172 | Utilidades y color | `normalize`, `currentTheme`, `palette`, `luminance`, `contrast`, `labelColor`, `setWin`, `toast`, `colorsFor`, `getIndexAtPointer` |
-| 174–215 | Persistencia | `loadState`, `saveState` |
-| 217–246 | Tema | `syncThemeUI`, `setTheme`, `toggleTheme` |
-| 248–305 | Sonido | `getAudio`, `playTick`, `playFanfare`, `updateSoundUI` |
-| 307–444 | Dibujo de la ruleta | `fitLabel`, `shade`, `draw`, `resizeWheel` |
-| 446–460 | Bombillas del bisel | `buildBulbs` |
-| 462–538 | Confeti | `resizeFx`, `burstConfetti`, `stepConfetti` |
-| 540–645 | Giro | `finishSpin`, `spin` |
-| 647–796 | Interfaz | `syncControls`, `renderOptions`, `renderHistory`, `showHint`, CRUD y reset |
-| 798–871 | Eventos e inicio | Listeners, `ResizeObserver`, `matchMedia` e inicialización |
+| 1–104 | Arranque | `"use strict"`, constantes, `LANGS` (textos por idioma), `LANG`, `GEMS`, `THEMES` |
+| 106–147 | Referencias y estado | `els`, contextos de canvas, variables de módulo |
+| 149–215 | Utilidades y color | `normalize`, `currentTheme`, `palette`, `luminance`, `contrast`, `labelColor`, `setWin`, `toast`, `colorsFor`, `getIndexAtPointer` |
+| 217–258 | Persistencia | `loadState` (valida etiquetas y colores), `saveState` |
+| 260–289 | Tema | `syncThemeUI`, `setTheme`, `toggleTheme` |
+| 291–348 | Sonido | `getAudio`, `playTick`, `playFanfare`, `updateSoundUI` |
+| 350–487 | Dibujo de la ruleta | `fitLabel`, `shade`, `draw`, `resizeWheel` |
+| 489–503 | Bombillas del bisel | `buildBulbs` |
+| 505–581 | Confeti | `resizeFx`, `burstConfetti`, `stepConfetti` |
+| 583–688 | Giro | `finishSpin`, `spin` |
+| 690–839 | Interfaz | `syncControls`, `renderOptions`, `renderHistory`, `showHint`, CRUD y reset |
+| 841–923 | Eventos e inicio | Listeners (incluido el del enlace de idioma), `ResizeObserver`, `matchMedia` e inicialización |
 
 No hay clases ni prototipos: son funciones y variables de módulo. Esto es intencional (ver documento 07).
 
@@ -113,7 +128,7 @@ No hay clases ni prototipos: son funciones y variables de módulo. Esto es inten
 
 | Variable | Tipo | Inicial | Dueño / mutadores | Persistida |
 | --- | --- | --- | --- | --- |
-| `options` | `string[]` | `DEFAULT_OPTIONS` (distintas por idioma) | `addOption`, `removeOption`, `shuffleOptions`, `resetAll`, `loadState` | Sí |
+| `options` | `string[]` | `DEFAULT_OPTIONS` (de `LANGS[LANG].defaults`) | `addOption`, `removeOption`, `shuffleOptions`, `resetAll`, `loadState` | Sí |
 | `history` | `{label, color}[]` | `[]` | `finishSpin` (unshift + recorte), `resetAll`, `loadState` | Sí |
 | `rotation` | `number` (radianes) | `0` | `spin` (por frame) | No |
 | `spinning` | `boolean` | `false` | `spin`, `finishSpin` | No |
@@ -127,15 +142,16 @@ No hay clases ni prototipos: son funciones y variables de módulo. Esto es inten
 | `toastTimer` | `number` | `0` | `toast` | No |
 | `audio` | `AudioContext \| null` | `null` | `getAudio` | No |
 
-Constantes relevantes: `TAU`, `STORAGE_KEY`, `THEME_KEY`, `MAX_OPTIONS`, `reduced`, `FONT`,
-`DEFAULT_OPTIONS`, `plural`, `COPY`, `GEMS` y `THEMES`. La única diferencia de configuración entre idiomas es
-`STORAGE_KEY` y el contenido de `DEFAULT_OPTIONS`/`COPY`.
+Constantes relevantes: `TAU`, `THEME_KEY`, `LANG_KEY`, `MAX_OPTIONS`, `HEX`, `reduced`, `FONT`, `LANGS`,
+`GEMS` y `THEMES`. De `LANGS[LANG]` salen `STORAGE_KEY`, `DEFAULT_OPTIONS` y `COPY`; `LANG` se toma de
+`<html lang>` (si no existe en `LANGS`, se usa `es`).
 
 ## 6. Flujo de arranque
 
 ```text
-La página correspondiente se carga (ES o EN)
-  └─ IIFE se ejecuta
+La página correspondiente se carga (/es/ o /en/)
+  ├─ theme.js fija data-theme antes del primer pintado
+  └─ IIFE se ejecuta (LANG ← <html lang>)
        1. cachea elementos y contextos 2D
        2. loadState()
             ├─ éxito → options/history/muted desde la clave de ese idioma
@@ -279,11 +295,11 @@ guarda aparte, en `ruleta-theme`, y lo comparten ambos idiomas. No hay guardado 
 
 ## 14. Limitaciones estructurales
 
-- **Lógica duplicada**: `app.js` y `en/app.js` son copias; un arreglo en uno no llega al otro.
 - **Acoplamiento por IDs**: no hay capa de componentes; renombrar un ID rompe la app en silencio.
 - **Estado global mutable**: cualquier función puede modificarlo; la disciplina la marcan las guardas
   `if (spinning)`.
-- **Sin i18n real**: los textos están incrustados; añadir un idioma implica duplicar HTML y JS.
+- **i18n mínima**: añadir un idioma implica duplicar un HTML, añadir su entrada en `LANGS` y listarlo en
+  `hreflang`, `sitemap.xml`, la portada y el enlace de idioma (que hoy solo conmuta entre dos).
 - **Sin sincronización entre pestañas**: dos pestañas pueden pisarse los datos (gana la última).
 - **Sin sincronización entre idiomas**: cada versión guarda opciones distintas.
 - **Sin red**: no se puede compartir una lista por URL ni cargar opciones remotas.

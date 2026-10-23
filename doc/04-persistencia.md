@@ -5,7 +5,7 @@
 | Aspecto | Valor |
 | --- | --- |
 | API | `window.localStorage` |
-| Claves | `ruleta-de-la-suerte:v1` (ES) · `spin-the-wheel:v1` (EN) · `ruleta-theme` (compartida) |
+| Claves | `ruleta-de-la-suerte:v1` (ES) · `spin-the-wheel:v1` (EN) · `ruleta-theme` y `wheel-lang` (compartidas) |
 | Formato | JSON de un solo objeto por idioma; el tema es una cadena suelta |
 | Se guarda | Opciones, historial, silencio y tema |
 | No se guarda | Resultado actual, rotación, confeti, estado `spinning` |
@@ -15,10 +15,11 @@
 | Sincronización | No (no se escucha el evento `storage`) |
 | Separación por idioma | **Sí**: cada página usa su propia clave |
 
-Las páginas `/` y `/en/` comparten el mismo **origen** (mismo dominio y puerto) y, por tanto, el mismo
-almacén de `localStorage`. Lo que las separa es la clave: son dos registros independientes dentro del
-mismo almacén. El tema es la excepción: usa una sola clave (`ruleta-theme`) y se comparte entre ambos
-idiomas.
+Las páginas `/es/` y `/en/` comparten el mismo **origen** (mismo dominio y puerto) y, por tanto, el
+mismo almacén de `localStorage`. Lo que las separa es la clave: son dos registros independientes
+dentro del mismo almacén. El tema es la excepción: usa una sola clave (`ruleta-theme`) y se comparte
+entre ambos idiomas. `wheel-lang` (`"es"` o `"en"`) guarda el idioma elegido con el botón `EN`/`ES`;
+solo la portada `/` la lee para redirigir.
 
 ## 2. Esquema
 
@@ -38,7 +39,7 @@ Idéntico en ambos idiomas:
 | Campo | Tipo | Límite al guardar | Límite al cargar |
 | --- | --- | --- | --- |
 | `options` | `string[]` | Máx. 20 (lo impone `addOption`); cada una ≤ 40 caracteres | Filtra strings no vacíos, `trim`, ≤ 40 caracteres, máx. 20 |
-| `history` | `{label: string, color: string}[]` | Máx. 12 (recorte en `finishSpin`) | Filtra entradas con `label` y `color` strings; máx. 12 |
+| `history` | `{label: string, color: string}[]` | Máx. 12 (recorte en `finishSpin`) | Filtra entradas con `label` string (recortada a 40); el color se valida con `#rgb`/`#rrggbb`; máx. 12 |
 | `muted` | `boolean` | Booleano | `Boolean(valor)` |
 
 El historial se guarda de más reciente a más antiguo (`unshift`). La interfaz solo pinta los 10
@@ -51,8 +52,8 @@ sobrecarga ≈ **1,5 KB**. No hay riesgo de cuota.
 
 | Página | Idioma | Clave | Opciones iniciales |
 | --- | --- | --- | --- |
-| `index.html` | `es` | `ruleta-de-la-suerte:v1` | Pizza, Sushi, Hamburguesa, Tacos, Ensalada, Pasta, Ramen, Helado |
-| `en/index.html` | `en` | `spin-the-wheel:v1` | Pizza, Sushi, Burger, Tacos, Salad, Pasta, Ramen, Ice cream |
+| `/es/` | `es` | `ruleta-de-la-suerte:v1` | Pizza, Sushi, Hamburguesa, Tacos, Ensalada, Pasta, Ramen, Helado |
+| `/en/` | `en` | `spin-the-wheel:v1` | Pizza, Sushi, Burger, Tacos, Salad, Pasta, Ramen, Ice cream |
 
 Además, ambas páginas comparten `ruleta-theme`, que guarda `"day"` o `"night"`. Si la clave no existe,
 la primera visita sigue `prefers-color-scheme`; si existe, manda la elección del usuario.
@@ -84,11 +85,11 @@ Tampoco hay guardado por inactividad ni `beforeunload`.
 
 ## 5. Cuándo se lee
 
-Una sola vez al arrancar la página, en `loadState()` (`app.js:186` / `en/app.js:183`), usando la clave
-del idioma correspondiente. No se vuelve a leer después. Si otra pestaña modifica los datos, esta
+Una sola vez al arrancar la página, en `loadState()` (`public/app.js:219`), usando la clave del idioma
+correspondiente. No se vuelve a leer después. Si otra pestaña modifica los datos, esta
 pestaña no se enterará hasta recargar.
 
-El tema se lee antes de pintar, en el script inline del `<head>`, y otra vez en `setTheme`/`init` para
+El tema se lee antes de pintar, en `theme.js` (script síncrono del `<head>`), y otra vez en `setTheme`/`init` para
 sincronizar el botón. `matchMedia("(prefers-color-scheme: dark)")` se escucha en caliente: si el sistema
 cambia y no hay preferencia guardada, la página cambia de tema sin recargar.
 
@@ -103,8 +104,8 @@ cambia y no hay preferencia guardada, la página cambia de tema sin recargar.
 | `options` es `[]` | **Se respeta**: la ruleta arranca vacía (es un estado alcanzable borrando todas las opciones) |
 | Opciones con espacios o > 40 caracteres | Se normalizan/recortan al cargar |
 | Historial con entradas corruptas | Se descartan esas entradas, no todo el historial |
-| Etiqueta de historial muy larga | Se acepta sin recortar (solo se valida que sea string); puede romper el diseño |
-| Color de historial inválido | Se acepta como variable CSS; el punto puede quedar sin color, sin ejecutar código |
+| Etiqueta de historial muy larga | Se recorta a 40 caracteres |
+| Color de historial inválido | Se sustituye por el primer color de la paleta (solo se aceptan `#rgb`/`#rrggbb`) |
 | `muted` ausente | `false` (sonido activo) |
 | `muted` con valor no booleano | Se convierte con `Boolean()` |
 | `ruleta-theme` ausente | Se sigue `prefers-color-scheme` del sistema |
@@ -140,7 +141,9 @@ location.reload();
 
 - **Borrar datos del navegador**: también elimina estas claves, junto con el resto del sitio.
 - **Cambiar de origen** (`file://`, `http://localhost:8000`, dominio publicado): son almacenes
-  distintos; los datos no viajan entre ellos. `/` y `/en/` sí comparten origen, pero no clave.
+  distintos; los datos no viajan entre ellos. `/es/` y `/en/` sí comparten origen, pero no clave.
+  Al pasar de los dos subdominios antiguos a un solo dominio, quien usaba `roulette.yadale.click`
+  pierde sus opciones guardadas (origen distinto); en `ruleta.yadale.click` se conservan.
 
 ## 8. Exportar / importar (recetas)
 
@@ -171,8 +174,8 @@ location.reload();
 Las claves incluyen `:v1` y son distintas por idioma. No existe lógica de migración entre versiones.
 Estrategias al cambiar el esquema:
 
-1. **Cambiar de clave** (p. ej. `:v2`): los usuarios empiezan de cero, sin errores. Hay que hacerlo en
-   ambos JS.
+1. **Cambiar de clave** (p. ej. `:v2`): los usuarios empiezan de cero, sin errores. Se cambia en
+   `LANGS` dentro de `public/app.js`.
 2. **Migrar en `loadState`**: detectar campos ausentes y completarlos. Mantener compatibilidad y
    probar los casos corruptos.
 

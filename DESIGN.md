@@ -50,6 +50,7 @@ Diseño oficial de `main`. Sustituye al almanaque editorial anterior por un esce
 - **Rueda:** columna principal; debajo, la leyenda de teclado y el veredicto.
 - **Botón central:** vidrio oscuro con un anillo que late para invitar a girar; deja de latir al girar.
 - **Panel:** opciones (campo, filas con punto luminoso, barajar/reiniciar) e historial en píldoras.
+- **Portada y 404:** tarjeta de vidrio centrada con título en degradado y dos botones de idioma.
 
 ## Accesibilidad
 
